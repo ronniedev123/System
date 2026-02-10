@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attendance</title>
+<link rel="stylesheet" href="css/styles.css">
+<style>
+body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; }
+table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+th { background: #f2f2f2; }
+button { padding: 5px 10px; cursor: pointer; }
+#logoutBtn { float: right; background-color: #f44336; color: white; border: none; border-radius: 5px; }
+</style>
+</head>
+<body>
+<button id="backBtn" onclick="window.location.href='dashboard.html'" style="float:left; background-color:#2196f3; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; margin-right:10px;">← Back</button>
+<button id="logoutBtn">Logout</button>
+<h1>Track Attendance & Reports</h1>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+    <!-- Mark Attendance Section -->
+    <div style="border: 1px solid #ddd; padding: 20px; border-radius: 8px; background-color: #f9f9f9;">
+        <h3>Mark Member Attendance</h3>
+        <p style="color: #666; font-size: 14px;">Record when a member attends service</p>
+        <form id="attendanceForm">
+            <label for="member_name" style="display: block; margin-bottom: 8px; font-weight: bold;">Member Name:</label>
+            <div style="position: relative; margin-bottom: 15px;">
+                <input type="text" id="member_name" required placeholder="Type member name" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+                <div id="suggestions" style="position: absolute; top: 100%; left: 0; right: 0; border: 1px solid #ccc; border-top: none; background: white; max-height: 200px; overflow-y: auto; border-radius: 0 0 4px 4px; display: none; z-index: 100;"></div>
+            </div>
+            <label for="date" style="display: block; margin-bottom: 8px; font-weight: bold;">Date & Time (optional):</label>
+            <input type="datetime-local" id="date" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px;">
+            <button type="submit" style="background-color:#4CAF50; color:white; border:none; padding:10px 20px; width:100%; cursor:pointer; border-radius:4px; font-weight:bold; margin-bottom: 10px;">Mark Attendance</button>
+            <button type="button" id="createMemberBtn" style="background-color:#2196F3; color:white; border:none; padding:10px 20px; width:100%; cursor:pointer; border-radius:4px; font-weight:bold;">Create New Member</button>
+        </form>
+    </div>
+    
+    <!-- Reports Section -->
+    <div style="border: 1px solid #ddd; padding: 20px; border-radius: 8px; background-color: #f9f9f9;">
+        <h3>Attendance Reports</h3>
+        <p style="color: #666; font-size: 14px;">View monthly and yearly attendance data</p>
+        <div style="margin-bottom: 15px;">
+            <label for="monthSelect" style="display: block; margin-bottom: 8px; font-weight: bold;">Select Month:</label>
+            <select id="monthSelect" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;"></select>
+        </div>
+        <div style="margin-bottom: 15px;">
+            <label for="yearSelect" style="display: block; margin-bottom: 8px; font-weight: bold;">Select Year:</label>
+            <select id="yearSelect" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;"></select>
+        </div>
+    </div>
+</div>
+
+<div style="margin-top: 30px; border: 1px solid #ddd; padding: 20px; border-radius: 8px;">
+    <h3 id="reportTitle">Attendance Summary</h3>
+    <p style="color: #666; font-size: 14px;">Showing attendance for each Sunday - Present (Green) / Absent (Red)</p>
+    <p id="adminHint" style="color: #2196F3; font-size: 13px; font-weight: bold; display: none;">💡 Admins: Click any cell to edit attendance status</p>
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+            <thead id="attendanceHead"></thead>
+            <tbody id="attendanceTable"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Create New Member Modal -->
+<div id="createMemberModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); width: 90%; max-width: 500px;">
+        <h2 style="margin-top: 0;">Create New Member</h2>
+        <form id="createNewMemberForm" style="display: flex; flex-direction: column; gap: 15px;">
+            <div>
+                <label for="new_member_name" style="display: block; margin-bottom: 5px; font-weight: bold;">Name: <span style="color: red;">*</span></label>
+                <input type="text" id="new_member_name" required style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;" />
+            </div>
+            <div>
+                <label for="new_member_email" style="display: block; margin-bottom: 5px; font-weight: bold;">Email:</label>
+                <input type="email" id="new_member_email" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;" />
+            </div>
+            <div>
+                <label for="new_member_phone" style="display: block; margin-bottom: 5px; font-weight: bold;">Phone:</label>
+                <input type="text" id="new_member_phone" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;" />
+            </div>
+            <div>
+                <label for="new_member_address" style="display: block; margin-bottom: 5px; font-weight: bold;">Address:</label>
+                <input type="text" id="new_member_address" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;" />
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button type="submit" style="flex: 1; background-color:#4CAF50; color:white; border:none; padding:12px; cursor:pointer; border-radius:4px; font-weight:bold;">Save Member</button>
+                <button type="button" onclick="closeCreateMemberModal()" style="flex: 1; background-color:#999; color:white; border:none; padding:12px; cursor:pointer; border-radius:4px; font-weight:bold;">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Attendance Modal (Admin Only) -->
+<div id="editAttendanceModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); width: 90%; max-width: 400px;">
+        <h2 style="margin-top: 0;">Edit Attendance</h2>
+        <p style="margin: 15px 0;"><strong>Member:</strong> <span id="editMemberName"></span></p>
+        <p style="margin: 15px 0;"><strong>Date:</strong> <span id="editDate"></span></p>
+        <p style="margin: 15px 0;"><strong>Current Status:</strong> <span id="editStatus" style="font-weight: bold;"></span></p>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button type="button" id="toggleStatusBtn" style="flex: 1; background-color:#2196F3; color:white; border:none; padding:12px; cursor:pointer; border-radius:4px; font-weight:bold;"></button>
+            <button type="button" onclick="closeEditAttendanceModal()" style="flex: 1; background-color:#999; color:white; border:none; padding:12px; cursor:pointer; border-radius:4px; font-weight:bold;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<style>
+table { width: 100%; border-collapse: collapse; }
+th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+th { background-color: #2196F3; color: white; font-weight: bold; }
+tr:nth-child(even) { background-color: #f9f9f9; }
+.clickable-cell { cursor: pointer; user-select: none; }
+.clickable-cell:hover { opacity: 0.8; }
+</style>
+
+<script>
+const token = localStorage.getItem('token');
+if(!token) window.location.href="index.html";
+
+const payload = JSON.parse(atob(token.split('.')[1]));
+const role = payload.role;
+
+document.getElementById('logoutBtn').addEventListener('click',()=>{ localStorage.removeItem('token'); window.location.href="index.html"; });
+
+// Build month/year selectors
+function populateMonthYear(){
+    const monthSel = document.getElementById('monthSelect');
+    const yearSel = document.getElementById('yearSelect');
+    const now = new Date();
+    for(let m=0;m<12;m++){
+        const opt = document.createElement('option'); opt.value = m; opt.text = new Date(0, m).toLocaleString('default',{month:'long'});
+        if(m===now.getMonth()) opt.selected = true;
+        monthSel.appendChild(opt);
+    }
+    for(let y=now.getFullYear()-2;y<=now.getFullYear()+1;y++){
+        const opt = document.createElement('option'); opt.value = y; opt.text = y; if(y===now.getFullYear()) opt.selected=true; yearSel.appendChild(opt);
+    }
+}
+
+// Show attendance per Sunday for selected month/year
+async function loadAttendance(){
+    try{
+        const month = parseInt(document.getElementById('monthSelect').value);
+        const year = parseInt(document.getElementById('yearSelect').value);
+        
+        // Update the report title
+        const monthName = new Date(0, month).toLocaleString('default', {month:'long'});
+        document.getElementById('reportTitle').textContent = `Attendance Summary - ${monthName} ${year}`;
+        
+        // Show admin hint if user is admin
+        const adminHint = document.getElementById('adminHint');
+        if (role === 'admin') {
+            adminHint.style.display = 'block';
+        } else {
+            adminHint.style.display = 'none';
+        }
+
+        // fetch members and attendance
+        const [mRes, aRes] = await Promise.all([
+            fetch('http://localhost:3000/api/members', { headers: { Authorization: `Bearer ${token}` } }),
+            fetch('http://localhost:3000/api/attendance', { headers: { Authorization: `Bearer ${token}` } })
+        ]);
+        const members = await mRes.json();
+        const records = await aRes.json();
+
+        // compute all Sundays in month
+        const sundays = [];
+        const start = new Date(year, month - 1, 1);  // month is 0-indexed
+        const end = new Date(year, month, 0);        // last day of the month
+        for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
+            if(d.getDay()===0) sundays.push(new Date(d));
+        }
+
+        // prepare a map of attendance dates per member: DATE(check_in) -> member_id
+        const attendanceMap = {};
+        records.forEach(r => {
+            const dt = r.check_in || r.date || r.checkIn || r.created_at; // handle different shapes
+            if(!dt) return;
+            const datePart = dt.split('T')[0] || dt.split(' ')[0];
+            if(!attendanceMap[datePart]) attendanceMap[datePart] = new Set();
+            attendanceMap[datePart].add(String(r.member_id || r.memberId || r.member_id));
+        });
+
+        // build table header
+        const thead = document.getElementById('attendanceHead');
+        thead.innerHTML = '';
+        const headerRow = document.createElement('tr');
+        headerRow.innerHTML = '<th>Member</th>' + sundays.map(s => `<th>${s.toLocaleDateString()}</th>`).join('');
+        thead.appendChild(headerRow);
+
+        // build body per member
+        const tbody = document.getElementById('attendanceTable');
+        tbody.innerHTML = '';
+        members.forEach(m => {
+            const tr = document.createElement('tr');
+            let rowHtml = `<td>${m.name} (${m.id})</td>`;
+            sundays.forEach(s => {
+                // Use local date components to avoid timezone shift from toISOString()
+                const yyyy = s.getFullYear();
+                const mm = String(s.getMonth() + 1).padStart(2, '0');
+                const dd = String(s.getDate()).padStart(2, '0');
+                const key = `${yyyy}-${mm}-${dd}`;
+                const present = attendanceMap[key] && attendanceMap[key].has(String(m.id));
+                
+                // Make cells clickable for admins
+                if (role === 'admin') {
+                    const onclick = `editAttendance(${m.id}, '${key}', ${present})`;
+                    rowHtml += `<td class="clickable-cell" onclick="${onclick}" style="cursor: pointer;">${present ? '<span style="color:green">Present</span>' : '<span style="color:red">Absent</span>'}</td>`;
+                } else {
+                    rowHtml += `<td>${present ? '<span style="color:green">Present</span>' : '<span style="color:red">Absent</span>'}</td>`;
+                }
+            });
+            tr.innerHTML = rowHtml;
+            tbody.appendChild(tr);
+        });
+
+    }catch(err){ console.error(err); alert('Error fetching attendance or members'); }
+}
+
+populateMonthYear();
+document.getElementById('monthSelect').addEventListener('change', loadAttendance);
+document.getElementById('yearSelect').addEventListener('change', loadAttendance);
+
+// Load members for autocomplete
+let membersData = [];
+async function loadMembers() {
+    try {
+        const res = await fetch('http://localhost:3000/api/members', { headers: { Authorization: `Bearer ${token}` } });
+        membersData = await res.json();
+    } catch(err) { console.error('Failed to load members', err); }
+}
+
+// Autocomplete functionality
+const memberInput = document.getElementById('member_name');
+const suggestionsDiv = document.getElementById('suggestions');
+
+memberInput.addEventListener('input', function() {
+    const value = this.value.toLowerCase().trim();
+    
+    if (value.length === 0) {
+        suggestionsDiv.style.display = 'none';
+        suggestionsDiv.innerHTML = '';
+        return;
+    }
+    
+    const filtered = membersData.filter(m => 
+        m.name.toLowerCase().includes(value)
+    );
+    
+    if (filtered.length === 0) {
+        suggestionsDiv.style.display = 'none';
+        suggestionsDiv.innerHTML = '';
+        return;
+    }
+    
+    suggestionsDiv.innerHTML = filtered.map(m => 
+        `<div onclick="selectMember('${m.name}')" style="padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; hover { background-color: #f0f0f0; }">
+            ${m.name} (${m.email || 'no email'})
+        </div>`
+    ).join('');
+    suggestionsDiv.style.display = 'block';
+});
+
+window.selectMember = function(name) {
+    memberInput.value = name;
+    suggestionsDiv.style.display = 'none';
+    suggestionsDiv.innerHTML = '';
+};
+
+// Close suggestions when clicking outside
+document.addEventListener('click', function(e) {
+    if (e.target !== memberInput) {
+        suggestionsDiv.style.display = 'none';
+    }
+});
+
+// Create new member button - open modal
+document.getElementById('createMemberBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    document.getElementById('createMemberModal').style.display = 'block';
+    document.getElementById('new_member_name').focus();
+});
+
+// Close create member modal
+window.closeCreateMemberModal = function() {
+    document.getElementById('createMemberModal').style.display = 'none';
+    document.getElementById('createNewMemberForm').reset();
+};
+
+// Handle create member form submission
+const createNewMemberForm = document.getElementById('createNewMemberForm');
+if (createNewMemberForm) {
+    createNewMemberForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const name = document.getElementById('new_member_name').value.trim();
+        const email = document.getElementById('new_member_email').value.trim();
+        const phone = document.getElementById('new_member_phone').value.trim();
+        const address = document.getElementById('new_member_address').value.trim();
+        
+        if (!name) {
+            alert('Member name is required');
+            return;
+        }
+        
+        try {
+            const res = await fetch('http://localhost:3000/api/members', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ name, email: email || null, phone: phone || null, address: address || null })
+            });
+            
+            const data = await res.json();
+            
+            if (res.ok || data.message) {
+                alert('Member created successfully');
+                closeCreateMemberModal();
+                loadMembers(); // Reload member list
+                memberInput.value = name;
+                memberInput.focus();
+            } else {
+                alert(data.error || 'Failed to create member');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Server error');
+        }
+    });
+}
+
+// Close modal when clicking outside of it
+window.addEventListener('click', function(e) {
+    const modal = document.getElementById('createMemberModal');
+    if (e.target === modal) {
+        closeCreateMemberModal();
+    }
+});
+
+document.getElementById('attendanceForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    try {
+        const memberName = document.getElementById('member_name').value.trim();
+        if (!memberName) return alert('Please enter a member name');
+        
+        const dateVal = document.getElementById('date').value;
+        const body = { memberName };
+        
+        // Convert datetime-local to a proper date string at 9:00 AM local time (typical service time)
+        if (dateVal) {
+            const date = new Date(dateVal);
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            body.date = `${yyyy}-${mm}-${dd} 09:00:00`;
+        }
+
+        const res = await fetch("http://localhost:3000/api/attendance", {
+            method: "POST", 
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, 
+            body: JSON.stringify(body)
+        });
+        if (res.ok) { 
+            alert("Attendance marked"); 
+            document.getElementById('attendanceForm').reset();
+            loadAttendance(); 
+        }
+        else { 
+            const data = await res.json(); 
+            alert(data.error || "Error marking attendance"); 
+        }
+    } catch(err) { console.error(err); alert("Server error"); }
+});
+
+loadMembers();
+loadAttendance();
+
+// Edit attendance modal functions
+window.closeEditAttendanceModal = function() {
+    document.getElementById('editAttendanceModal').style.display = 'none';
+};
+
+// Store context for editing
+let editContext = { memberId: null, date: null, isPresent: false };
+
+// Handle edit attendance cell click
+window.editAttendance = function(memberId, date, isPresent) {
+    editContext = { memberId, date, isPresent };
+    
+    const member = membersData.find(m => m.id === memberId);
+    document.getElementById('editMemberName').textContent = member ? member.name : 'Member ' + memberId;
+    document.getElementById('editDate').textContent = date;
+    
+    const statusSpan = document.getElementById('editStatus');
+    const btnToggle = document.getElementById('toggleStatusBtn');
+    
+    if (isPresent) {
+        statusSpan.textContent = 'Present (Green)';
+        statusSpan.style.color = 'green';
+        btnToggle.textContent = 'Mark as Absent';
+        btnToggle.style.backgroundColor = '#f44336';
+    } else {
+        statusSpan.textContent = 'Absent (Red)';
+        statusSpan.style.color = '#f44336';
+        btnToggle.textContent = 'Mark as Present';
+        btnToggle.style.backgroundColor = '#4CAF50';
+    }
+    
+    document.getElementById('editAttendanceModal').style.display = 'block';
+};
+
+// Handle toggle status button
+document.getElementById('toggleStatusBtn').addEventListener('click', async () => {
+    try {
+        if (editContext.isPresent) {
+            // Delete the attendance record (mark as absent)
+            const res = await fetch('http://localhost:3000/api/attendance', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ memberId: editContext.memberId, date: editContext.date })
+            });
+            
+            if (res.ok) {
+                alert('Attendance deleted - member now marked as Absent');
+                closeEditAttendanceModal();
+                loadAttendance();
+            } else {
+                const data = await res.json();
+                alert(data.error || 'Error updating attendance');
+            }
+        } else {
+            // Create a new attendance record (mark as present)
+            const res = await fetch('http://localhost:3000/api/attendance', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ 
+                    memberId: editContext.memberId, 
+                    date: editContext.date + ' 09:00:00'
+                })
+            });
+            
+            if (res.ok) {
+                alert('Attendance created - member now marked as Present');
+                closeEditAttendanceModal();
+                loadAttendance();
+            } else {
+                const data = await res.json();
+                alert(data.error || 'Error updating attendance');
+            }
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Server error');
+    }
+});
+
+// Close edit modal when clicking outside
+window.addEventListener('click', function(e) {
+    const editModal = document.getElementById('editAttendanceModal');
+    if (e.target === editModal) {
+        closeEditAttendanceModal();
+    }
+});
+</script>
+</body>
+</html>

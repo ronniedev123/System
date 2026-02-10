@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Graphs</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="css/styles.css">
+<style>
+	body { max-width: 1200px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif; }
+	.controls { display: flex; gap: 15px; margin: 20px 0; flex-wrap: wrap; }
+	.controls select, .controls button { padding: 10px 15px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-size: 14px; }
+	.controls button { background-color: #4CAF50; color: white; border: none; font-weight: bold; }
+	.controls button:hover { background-color: #45a049; }
+	.controls button.secondary { background-color: #ff9800; }
+	.controls button.secondary:hover { background-color: #e68900; }
+	.charts-container { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin: 30px 0; }
+	.chart-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+	canvas { max-width: 100%; }
+	@media (max-width: 768px) { .charts-container { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<nav style="margin-bottom:16px;">
+	<button onclick="window.location.href='dashboard.html'" style="background-color:#2196f3; color:white; border:none; padding:8px 16px; border-radius:4px; cursor:pointer; margin-right:10px;">← Back</button>
+	<a href="dashboard.html">Dashboard</a> | <a href="announcements.html">Announcements</a>
+	<span style="float:right"><a href="index.html">Logout</a></span>
+</nav>
+
+<h1>Attendance Trends & Analytics</h1>
+
+<div class="controls">
+	<label for="periodSelect">View:</label>
+	<select id="periodSelect">
+		<option value="month">Current Month</option>
+		<option value="quarter">Last 3 Months</option>
+		<option value="semester">Last 6 Months</option>
+		<option value="year">Current Year</option>
+	</select>
+	<button onclick="loadAttendanceChart()">Refresh</button>
+	<button class="secondary" onclick="downloadAllReport()">Download All Members Report</button>
+	<button class="secondary" onclick="downloadAverageReport()">Download Summary Report</button>
+</div>
+
+<div class="charts-container">
+	<div class="chart-box">
+		<h3>Average Attendance % per Sunday</h3>
+		<canvas id="attendanceChart"></canvas>
+	</div>
+	<div class="chart-box">
+		<h3>Attendance Trend</h3>
+		<canvas id="trendChart"></canvas>
+	</div>
+</div>
+
+<div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin-top: 30px;">
+	<h3>Monthly Summary</h3>
+	<table id="summaryTable" style="width: 100%; border-collapse: collapse; background: white;">
+		<thead>
+			<tr style="background-color: #2196F3; color: white;">
+				<th style="border: 1px solid #ddd; padding: 12px; text-align: left;">Month</th>
+				<th style="border: 1px solid #ddd; padding: 12px; text-align: center;">Total Members</th>
+				<th style="border: 1px solid #ddd; padding: 12px; text-align: center;">Total Sundays</th>
+				<th style="border: 1px solid #ddd; padding: 12px; text-align: center;">Average %</th>
+				<th style="border: 1px solid #ddd; padding: 12px; text-align: center;">Highest %</th>
+				<th style="border: 1px solid #ddd; padding: 12px; text-align: center;">Lowest %</th>
+			</tr>
+		</thead>
+		<tbody id="summaryTableBody">
+		</tbody>
+	</table>
+</div>
+
+<script src="js/charts.js"></script>
+</body>
+</html>

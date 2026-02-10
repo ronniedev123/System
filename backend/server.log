@@ -1,0 +1,11 @@
+
+> church-backend@1.0.0 start
+> node server.js
+
+[dotenv@17.2.3] injecting env (6) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ✅ audit secrets and track compliance: https://dotenvx.com/ops
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+Admin user already exists
+Server running on http://localhost:3000
+Migrations executed (tables ensured)
+^C^C

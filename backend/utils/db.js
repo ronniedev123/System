@@ -1,0 +1,16 @@
+// backend/utils/db.js
+const mysql = require("mysql2/promise");
+require("dotenv").config();
+
+const db = mysql.createPool({
+    host: process.env.DB_HOST || "localhost",
+    user: process.env.DB_USER || "root",
+    password: process.env.DB_PASSWORD || "Login@ronald2004",
+    database: process.env.DB_NAME || "church_db",
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+});
+
+
+module.exports = db;
