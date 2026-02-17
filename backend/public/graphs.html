@@ -32,21 +32,11 @@
 <div class="controls">
 	<label for="periodSelect">View:</label>
 	<select id="periodSelect">
-		<option value="01">January</option>
-		<option value="02">February</option>
-		<option value="03">March</option>
-		<option value="04">April</option>
-		<option value="05">May</option>
-		<option value="06">June</option>
-		<option value="07">July</option>
-		<option value="08">August</option>
-		<option value="09">September</option>
-		<option value="10">October</option>
-		<option value="11">November</option>
-		<option value="12">December</option>
-		<option value="year">Whole Year</option>
+		<option value="month">Current Month</option>
+		<option value="quarter">Last 3 Months</option>
+		<option value="semester">Last 6 Months</option>
+		<option value="year">Current Year</option>
 	</select>
-
 	<button onclick="loadAttendanceChart()">Refresh</button>
 	<button class="secondary" onclick="downloadAllReport()">Download All Members Report</button>
 	<button class="secondary" onclick="downloadAverageReport()">Download Summary Report</button>

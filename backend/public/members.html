@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Users</title>
+<link rel="stylesheet" href="css/styles.css">
+<style>
+    /* Page Layout */
+.page {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 20px;
+}
+
+/* Header */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.page-header h1 {
+    font-size: 26px;
+    font-weight: 700;
+}
+
+/* Cards */
+.card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    margin-bottom: 30px;
+}
+
+/* Forms */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.form-grid input {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+}
+
+/* Table */
+.table-wrapper {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th {
+    background: var(--primary);
+    color: white;
+    padding: 14px;
+    text-align: left;
+}
+
+td {
+    padding: 14px;
+    border-bottom: 1px solid var(--border);
+}
+
+tr:hover {
+    background: var(--bg);
+}
+
+/* Action Buttons */
+.action-btn {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.edit-btn {
+    background: var(--primary);
+    color: white;
+}
+
+.delete-btn {
+    background: var(--danger);
+    color: white;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--card);
+    padding: 30px;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 500px;
+    margin: auto;
+    margin-top: 10%;
+    animation: fadeIn 0.3s ease;
+}
+
+/* Buttons */
+.btn {
+    padding: 10px 18px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-secondary {
+    background: var(--secondary);
+    color: white;
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: white;
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+    <!-- Header -->
+    <div class="page-header">
+        <button class="btn btn-primary" onclick="location.href='dashboard.html'">
+        ← Back
+        </button>
+
+        <h1>👥 Manage Members</h1>
+
+        <button id="logoutBtn" class="btn btn-danger">Logout</button>
+    </div>
+
+    <!-- Add Member -->
+    <div class="card">
+        <h3>Add New Member</h3>
+        <form id="addMemberForm" class="form-grid">
+        <input type="text" id="name" placeholder="Full Name" required />
+        <input type="email" id="email" placeholder="Email" required />
+        <input type="text" id="phone" placeholder="Phone" />
+        <input type="text" id="address" placeholder="Address" />
+        <button type="submit" class="btn btn-secondary">
+            ➕ Add Member
+        </button>
+        </form>
+    </div>
+
+    <!-- Members Table -->
+    <div class="card">
+        <h3>All Members</h3>
+        <div class="table-wrapper">
+        <table id="membersTable">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Address</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        </div>
+    </div>
+
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+    <div class="modal-content">
+        <h2>Edit Member</h2>
+        <form id="editMemberForm" class="form-grid">
+        <input type="text" id="edit_name" placeholder="Name" required />
+        <input type="email" id="edit_email" placeholder="Email" />
+        <input type="text" id="edit_phone" placeholder="Phone" />
+        <input type="text" id="edit_address" placeholder="Address" />
+        <button type="submit" class="btn btn-secondary">Save</button>
+        <button type="button" class="btn btn-danger" onclick="closeEditModal()">
+            Cancel
+        </button>
+        </form>
+    </div>
+</div>
+
+<script src="js/members.js"></script>
+</body>
+</html>

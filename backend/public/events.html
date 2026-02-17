@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Events</title>
+<link rel="stylesheet" href="css/styles.css">
+<style>
+body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; }
+table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+th { background: #f2f2f2; }
+button { padding: 5px 10px; cursor: pointer; }
+#logoutBtn { float: right; background-color: #f44336; color: white; border: none; border-radius: 5px; }
+</style>
+</head>
+<body>
+<button id="backBtn" onclick="window.location.href='dashboard.html'" style="float:left; background-color:#2196f3; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; margin-right:10px;">← Back</button>
+<button id="logoutBtn">Logout</button>
+<h1>Church Events</h1>
+
+<div id="adminActions" style="display:none;">
+<form id="addEventForm">
+<input type="text" id="title" placeholder="Event Title" required />
+<input type="date" id="date" required />
+<button type="submit">Add Event</button>
+</form>
+</div>
+
+<table>
+<thead><tr><th>ID</th><th>Title</th><th>Date</th><th>Actions</th></tr></thead>
+<tbody id="eventsTable"></tbody>
+</table>
+
+<script>
+const token = localStorage.getItem('token');
+if(!token) window.location.href="index.html";
+
+const payload = JSON.parse(atob(token.split('.')[1]));
+const role = payload.role;
+if(role==='admin') document.getElementById('adminActions').style.display='block';
+
+document.getElementById('logoutBtn').addEventListener('click',()=>{ localStorage.removeItem('token'); window.location.href="index.html"; });
+
+async function loadEvents(){
+    try{
+        const res = await fetch("/api/events",{ headers:{ Authorization:`Bearer ${token}` }});
+        const events = await res.json();
+        const tbody=document.getElementById('eventsTable');
+        tbody.innerHTML="";
+        events.forEach(e=>{
+            const tr=document.createElement('tr');
+            tr.innerHTML=`<td>${e.id}</td><td>${e.title}</td><td>${e.date}</td>
+            <td>${role==='admin'? `<button onclick="deleteEvent(${e.id})">Delete</button>` : ''}</td>`;
+            tbody.appendChild(tr);
+        });
+    }catch(err){ console.error(err); alert("Error fetching events"); }
+}
+
+document.getElementById('addEventForm')?.addEventListener('submit',async e=>{
+    e.preventDefault();
+    const title=document.getElementById('title').value;
+    const date=document.getElementById('date').value;
+    try{
+        const res = await fetch("http://localhost:3000/api/events",{
+            method:"POST", headers:{"Content-Type":"application/json", Authorization:`Bearer ${token}`}, body:JSON.stringify({title,date})
+        });
+        if(res.ok){ alert("Event added"); loadEvents(); }
+        else{ const data = await res.json(); alert(data.error || "Error adding event"); }
+    }catch(err){ console.error(err); alert("Server error"); }
+});
+
+async function deleteEvent(id){
+    if(!confirm("Delete this event?")) return;
+    try{
+        const res = await fetch(`http://localhost:3000/api/events/${id}`,{ method:"DELETE", headers:{ Authorization:`Bearer ${token}` }});
+        if(res.ok) loadEvents();
+        else alert("Error deleting event");
+    }catch(err){ console.error(err); alert("Server error"); }
+}
+
+loadEvents();
+</script>
+</body>
+</html>

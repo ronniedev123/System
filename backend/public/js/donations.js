@@ -10,7 +10,7 @@ if (!token && window.location.pathname.endsWith('donations.html')) {
 }
 
 async function fetchDonations(){
-    const res = await fetch("/donations", {
+    const res = await fetch("/api/donations", {
         headers: { "Authorization": `Bearer ${token}` }
     });
     const data = await res.json();
@@ -28,7 +28,7 @@ async function fetchDonations(){
 window.deleteDonation = async function(id){
     if(!confirm('Delete this donation?')) return;
     try{
-        const res = await fetch(`/donations/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+        const res = await fetch(`/api/donations/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
         if(res.ok) fetchDonations();
         else { const data = await res.json(); alert(data.error || 'Delete failed'); }
     }catch(err){ console.error(err); alert('Server error'); }
@@ -36,7 +36,7 @@ window.deleteDonation = async function(id){
 
 window.editDonation = async function(id){
     try{
-        const getRes = await fetch(`/donations/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+        const getRes = await fetch(`/api/donations/${id}`, { headers: { Authorization: `Bearer ${token}` } });
         if(!getRes.ok){ const d = await getRes.json(); alert(d.error || 'Not found'); return; }
         const donation = await getRes.json();
         const newAmount = prompt('Amount', donation.amount);
@@ -46,7 +46,7 @@ window.editDonation = async function(id){
         const newDate = prompt('Date (YYYY-MM-DD)', donation.date ? donation.date.split('T')[0] : '');
         if (newDate === null) return;
 
-        const res = await fetch(`/donations/${id}`, {
+        const res = await fetch(`/api/donations/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify({ amount: newAmount, date: newDate, description: newDescription })
@@ -67,7 +67,7 @@ if(donationForm){
         if(!memberName){ alert('Please enter a member name'); return; }
         
         try{
-            const res = await fetch("/donations/add", {
+            const res = await fetch("/api/donations/add", {
                 method:"POST",
                 headers: { "Content-Type":"application/json", "Authorization": `Bearer ${token}` },
                 body: JSON.stringify({memberName, amount, date, description})

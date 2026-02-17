@@ -3,7 +3,7 @@ const payload = JSON.parse(atob(token.split('.')[1]));
 const role = payload.role;
 
 async function loadAnnouncements(){
-  const res = await fetch('/announcements', { headers: { Authorization: `Bearer ${token}`}});
+  const res = await fetch('/api/announcements', { headers: { Authorization: `Bearer ${token}`}});
   if(!res.ok) return console.error('Failed to load announcements', await res.text());
   const list = await res.json();
   const ul = document.getElementById('list');
@@ -20,7 +20,7 @@ async function loadMembers() {
   if (role !== 'admin') return;
   
   try {
-    const res = await fetch('/members', {
+    const res = await fetch('/api/members', {
       headers: { Authorization: `Bearer ${token}` }
     });
     if (!res.ok) throw new Error('Failed to load members');
@@ -84,7 +84,7 @@ document.getElementById('sendSMSBtn').addEventListener('click', async () => {
   try {
     statusDiv.innerHTML = '<div style="color: #2196F3;">Sending...</div>';
     
-    const res = await fetch('/announcements/sms/send', {
+    const res = await fetch('/api/announcements/sms/send', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -114,7 +114,7 @@ document.getElementById('createBtn').addEventListener('click', async ()=>{
   const message = document.getElementById('message').value.trim();
   const sendEmail = document.getElementById('sendEmail').checked;
   if(!title || !message) return alert('Title and message required');
-  const res = await fetch('/announcements', {
+  const res = await fetch('/api/announcements', {
     method:'POST',
     headers: { 'Content-Type':'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify({ title, message, sendEmailToMembers: sendEmail })
