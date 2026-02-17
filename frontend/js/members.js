@@ -9,7 +9,7 @@ const addMemberForm = document.getElementById("addMemberForm");
 let currentEditingMemberId = null;
 
 async function fetchMembers() {
-    const res = await fetch("http://localhost:3000/api/members", {
+    const res = await fetch("https://unbeclouded-pamelia-nonevilly.ngrok-free.dev/api/members", {
         headers: { "Authorization": `Bearer ${token}` }
     });
     const data = await res.json();
@@ -63,7 +63,7 @@ if (editMemberForm) {
         const address = document.getElementById('edit_address').value;
         
         try {
-            const res = await fetch(`http://localhost:3000/api/members/${currentEditingMemberId}`, {
+            const res = await fetch(`https://unbeclouded-pamelia-nonevilly.ngrok-free.dev/api/members/${currentEditingMemberId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -91,7 +91,7 @@ window.deleteMember = async function(id) {
     if (!confirm('Are you sure you want to delete this member? All related data (attendance, donations) will also be deleted.')) return;
     
     try {
-        const res = await fetch(`http://localhost:3000/api/members/${id}`, {
+        const res = await fetch(`https://unbeclouded-pamelia-nonevilly.ngrok-free.dev/api/members/${id}`, {
             method: 'DELETE',
             headers: { Authorization: `Bearer ${token}` }
         });
@@ -119,7 +119,7 @@ if (addMemberForm) {
         const address = document.getElementById("address").value;
         
         try {
-            const res = await fetch("http://localhost:3000/api/members", {
+            const res = await fetch("https://unbeclouded-pamelia-nonevilly.ngrok-free.dev/api/members", {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
                 body: JSON.stringify({ name, email, phone, address })

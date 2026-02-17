@@ -3,7 +3,7 @@ const payload = JSON.parse(atob(token.split('.')[1]));
 const role = payload.role;
 
 async function loadAnnouncements(){
-  const res = await fetch('http://localhost:3000/api/announcements', { headers: { Authorization: `Bearer ${token}`}});
+  const res = await fetch('https://unbeclouded-pamelia-nonevilly.ngrok-free.dev/api/announcements', { headers: { Authorization: `Bearer ${token}`}});
   if(!res.ok) return console.error('Failed to load announcements', await res.text());
   const list = await res.json();
   const ul = document.getElementById('list');
@@ -20,7 +20,7 @@ async function loadMembers() {
   if (role !== 'admin') return;
   
   try {
-    const res = await fetch('http://localhost:3000/api/members', {
+    const res = await fetch('https://unbeclouded-pamelia-nonevilly.ngrok-free.dev/api/members', {
       headers: { Authorization: `Bearer ${token}` }
     });
     if (!res.ok) throw new Error('Failed to load members');
@@ -84,7 +84,7 @@ document.getElementById('sendSMSBtn').addEventListener('click', async () => {
   try {
     statusDiv.innerHTML = '<div style="color: #2196F3;">Sending...</div>';
     
-    const res = await fetch('http://localhost:3000/api/announcements/sms/send', {
+    const res = await fetch('https://unbeclouded-pamelia-nonevilly.ngrok-free.dev/api/announcements/sms/send', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
