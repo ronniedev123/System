@@ -7,7 +7,7 @@ if (!token && window.location.pathname.endsWith('attendance.html')) {
 }
 
 async function fetchAttendance(){
-    const res = await fetch("/attendance/trends", {
+    const res = await fetch("/api/attendance/trends", {
         headers: { "Authorization": `Bearer ${token}` }
     });
     const data = await res.json();
@@ -26,7 +26,7 @@ if(attendanceForm){
         let date = document.getElementById("date")?.value || null;
         // convert local datetime to ISO if provided
         if(date) date = new Date(date).toISOString();
-        const res = await fetch("/attendance", {
+        const res = await fetch("/api/attendance", {
             method:"POST",
             headers: { "Content-Type":"application/json", "Authorization": `Bearer ${token}` },
             body: JSON.stringify({memberId,date})
@@ -40,7 +40,7 @@ if(attendanceForm){
 // populate member select for attendance
 async function populateMemberSelect(){
     try{
-        const res = await fetch('/members',{ headers: { Authorization:`Bearer ${token}`}});
+        const res = await fetch('/api/members',{ headers: { Authorization:`Bearer ${token}`}});
             const members = await res.json();
             const sel = document.getElementById('member_id');
             if(!sel) return;

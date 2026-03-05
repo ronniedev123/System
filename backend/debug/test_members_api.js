@@ -1,7 +1,8 @@
 (async ()=>{
   try{
     const fetch = global.fetch || (await import('node-fetch')).default;
-    const base = 'http://localhost:3000/api';
+    const port = process.env.PORT || 3000;
+    const base = `http://localhost:${port}/api`;
     const loginRes = await fetch(base + '/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email:'admin@church.com', password:'admin123' }) });
     const login = await loginRes.json();
     const token = login.token;

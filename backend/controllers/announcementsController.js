@@ -8,25 +8,40 @@ exports.createAnnouncement = async (req, res) => {
         const { title, message, sendEmailToMembers } = req.body;
         const createdBy = req.user.id;
         if (!title || !message) return res.status(400).json({ error: 'title and message required' });
+        if (sendEmailToMembers && req.user.role !== 'admin') {
+            return res.status(403).json({ error: 'Only admins can send announcement emails' });
+        }
 
         const [result] = await db.execute(
             'INSERT INTO announcements (title, message, created_by) VALUES (?, ?, ?)',
             [title, message, createdBy]
         );
 
+        const emailSummary = { attempted: !!sendEmailToMembers, sent: false, recipients: 0, error: null };
+
         // Optionally send emails to all members
         if (sendEmailToMembers) {
             const [members] = await db.execute('SELECT name, email FROM members WHERE email IS NOT NULL AND email != ""');
             const emails = members.map(m => m.email).filter(Boolean);
-            if (emails.length) {
+            emailSummary.recipients = emails.length;
+
+            if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+                emailSummary.error = 'EMAIL_USER/EMAIL_PASS not configured on server';
+            } else if (emails.length) {
                 const subject = `Announcement: ${title}`;
                 const body = message;
-                // sendEmail handles batching
-                await sendEmail(emails, subject, body).catch(err => console.error('email error', err));
+                const sent = await sendEmail(emails, subject, body).catch(err => {
+                    console.error('email error', err);
+                    return false;
+                });
+                emailSummary.sent = !!sent;
+                if (!sent) emailSummary.error = 'Email transport failed. Check SMTP credentials/app password.';
+            } else {
+                emailSummary.error = 'No members with email addresses found';
             }
         }
 
-        res.status(201).json({ id: result.insertId, title, message });
+        res.status(201).json({ id: result.insertId, title, message, emailSummary });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

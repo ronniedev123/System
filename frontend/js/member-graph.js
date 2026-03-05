@@ -24,7 +24,7 @@ async function loadMemberAttendanceGraph() {
     
     try {
         // Fetch attendance records for this member
-        const res = await fetch(`/attendance?memberId=${memberId}`, {
+        const res = await fetch(`/api/attendance?memberId=${memberId}`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
         
@@ -203,7 +203,7 @@ async function downloadMemberReport() {
     const now = new Date();
     
     try {
-        const res = await fetch(`/attendance?memberId=${memberId}`, {
+        const res = await fetch(`/api/attendance?memberId=${memberId}`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
         

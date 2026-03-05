@@ -9,8 +9,12 @@ const JWT_SECRET = process.env.JWT_SECRET || "secretkey";
 exports.registerUser = async (req, res) => {
     try {
         const { name, email, password, role } = req.body;
+        const allowedRoles = new Set(["user", "normaluser"]);
         if (!name || !email || !password) {
             return res.status(400).json({ message: "All fields required" });
+        }
+        if (role && !allowedRoles.has(role)) {
+            return res.status(400).json({ error: "Invalid role. Only user and normaluser are allowed." });
         }
 
         // Check if user already exists
@@ -59,7 +63,8 @@ exports.loginUser = async (req, res) => {
 
         res.json({ token, role: user.role, name: user.name });
     } catch (err) {
-        console.error("LOGIN ERROR:", err);
+        console.error("LOGIN ERROR:", err.stack || err);
+        // in development you might send err.message
         res.status(500).json({ error: "Server error" });
     }
 };

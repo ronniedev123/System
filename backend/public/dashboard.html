@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Church Dashboard</title>
 <link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/church-theme.css">
 <style>
 /* Layout */
 body {
@@ -25,8 +26,6 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 30px;
-    <div id="welcomeText" style="font-size:14px; color:var(--muted);"></div>
-
 }
 
 .topbar h1 {
@@ -118,7 +117,7 @@ body {
 
 </style>
 </head>
-<body>
+<body class="church-theme">
 <div class="page">
 
     <!-- Top Bar -->
@@ -144,7 +143,7 @@ body {
         </div>
         <div class="stat">
         <h3 id="totalDonations">0</h3>
-        <p>Total Donations</p>
+        <p>Total Contributions</p>
         </div>
         <div class="stat">
         <h3 id="todayAttendance">0</h3>
@@ -162,7 +161,7 @@ body {
         <div class="action"><a href="announcements.html">📢 Announcements</a></div>
         <div class="action"><a href="attendance.html">✅ Attendance</a></div>
         <div class="action"><a href="graphs.html">📊 Reports</a></div>
-        <div class="action"><a href="donations.html">💰 Donations</a></div>
+        <div class="action"><a href="donations.html">💰 Contributions</a></div>
         </div>
     </div>
 
@@ -172,10 +171,19 @@ body {
         <div class="actions">
         <div class="action"><a href="members.html">👥 Members</a></div>
         <div class="action"><a href="events.html">📅 Events</a></div>
-        <div class="action"><a href="donations.html">💰 Donate</a></div>
+        <div class="action"><a href="donations.html">💰 Contribute</a></div>
         <div class="action"><a href="attendance.html">✅ Attendance</a></div>
         <div class="action"><a href="announcements.html">📢 Announcements</a></div>
         <div class="action"><a href="graphs.html">📊 Reports</a></div>
+        </div>
+    </div>
+
+    <!-- Normal User Dashboard -->
+    <div id="normalUserDashboard" class="dashboard" style="display:none;">
+        <h2>Member Panel</h2>
+        <div class="actions">
+        <div class="action"><a href="donations.html">💰 Contribute</a></div>
+        <div class="action"><a href="weekly-programs.html">📅 Weekly Programs</a></div>
         </div>
     </div>
 </div>
@@ -191,25 +199,29 @@ if(!token){
         // Load dashboards based on role
         if(role === 'admin'){
             document.getElementById('adminDashboard').style.display = 'block';
+        } else if (role === 'normaluser') {
+            document.getElementById('normalUserDashboard').style.display = 'block';
         } else {
             document.getElementById('userDashboard').style.display = 'block';
         }
 
-        // Show quick stats
-        document.getElementById('stats').style.display = 'flex';
+        // Show quick stats for admin/user roles only
+        if (role !== 'normaluser') {
+            document.getElementById('stats').style.display = 'flex';
 
-        // Fetch stats from backend
-        fetch("http://localhost:3000/api/members/stats", {
-            headers: { "Authorization": `Bearer ${token}` }
-        })
-        .then(res => res.json())
-        .then(data => {
-            document.getElementById('totalMembers').innerText = data.totalMembers;
-            document.getElementById('upcomingEvents').innerText = data.upcomingEvents;
-            document.getElementById('totalDonations').innerText = "$" + data.totalDonations;
-            document.getElementById('todayAttendance').innerText = data.todayAttendance;
-        })
-        .catch(err => console.error("Error fetching stats:", err));
+            // Fetch stats from backend
+            fetch("/api/members/stats", {
+                headers: { "Authorization": `Bearer ${token}` }
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('totalMembers').innerText = data.totalMembers;
+                document.getElementById('upcomingEvents').innerText = data.upcomingEvents;
+                document.getElementById('totalDonations').innerText = "$" + data.totalDonations;
+                document.getElementById('todayAttendance').innerText = data.todayAttendance;
+            })
+            .catch(err => console.error("Error fetching stats:", err));
+        }
 
     } catch(err){
         console.error("Invalid token", err);

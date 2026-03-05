@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Manage Users</title>
 <link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/church-theme.css">
 <style>
 body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; }
 table { width: 100%; border-collapse: collapse; margin-top: 20px; }
@@ -14,7 +15,7 @@ button { padding: 5px 10px; cursor: pointer; }
 #logoutBtn { float: right; background-color: #f44336; color: white; border: none; border-radius: 5px; }
 </style>
 </head>
-<body>
+<body class="church-theme">
 <button id="backBtn" onclick="window.location.href='dashboard.html'" style="float:left; background-color:#2196f3; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; margin-right:10px;">← Back</button>
 <button id="logoutBtn">Logout</button>
 <h1>Manage Users</h1>
@@ -25,7 +26,7 @@ button { padding: 5px 10px; cursor: pointer; }
     <input type="password" id="password" placeholder="Password" required />
     <select id="role">
         <option value="user">User</option>
-        <option value="admin">Admin</option>
+        <option value="normaluser">Normal User</option>
     </select>
     <button type="submit">Add User</button>
 </form>
@@ -45,6 +46,18 @@ button { padding: 5px 10px; cursor: pointer; }
 // Hook up the addUser form to call register endpoint (members.js currently implements member add, so keep inline)
 document.getElementById('logoutBtn').addEventListener('click',()=>{ localStorage.removeItem('token'); window.location.href="index.html"; });
 
+try {
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = 'index.html';
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    if (payload.role !== 'admin') {
+        window.location.href = 'dashboard.html';
+    }
+} catch (e) {
+    localStorage.removeItem('token');
+    window.location.href = 'index.html';
+}
+
 // Existing members.js file listens for addMemberForm; for users we keep the add form behaviour below.
 document.getElementById('addUserForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -55,7 +68,7 @@ document.getElementById('addUserForm').addEventListener('submit', async (e) => {
     const password = document.getElementById('password').value;
     const role = document.getElementById('role').value;
     try{
-        const res = await fetch('http://localhost:3000/api/auth/register', {
+        const res = await fetch('/api/auth/register', {
             method: 'POST', headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`},
             body: JSON.stringify({name,email,password,role})
         });
@@ -70,7 +83,7 @@ async function loadUsers(){
     const token = localStorage.getItem('token');
     if(!token) return window.location.href='index.html';
     try{
-        const res = await fetch('http://localhost:3000/api/auth/users', { headers: { Authorization: `Bearer ${token}` } });
+        const res = await fetch('/api/auth/users', { headers: { Authorization: `Bearer ${token}` } });
         if(!res.ok){ const d = await res.json(); return alert(d.error || d.message || 'Failed to fetch users'); }
         const users = await res.json();
         const tbody = document.getElementById('usersTable');

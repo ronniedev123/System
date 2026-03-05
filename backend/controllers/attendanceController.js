@@ -27,7 +27,8 @@ exports.markAttendance = async (req, res) => {
         date = date === undefined || date === null ? null : date;
 
         const record = await attendanceModel.addAttendance({ memberId, date, createdBy: userId });
-        res.json({ message: "Attendance marked successfully", attendance: record });
+        const message = record.alreadyMarked ? "Attendance already marked for this date" : "Attendance marked successfully";
+        res.json({ message, attendance: record });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -46,6 +47,11 @@ exports.getAttendanceTrends = async (req, res) => {
 // Return full attendance records (joined with member names)
 exports.getAttendanceRecords = async (req, res) => {
     try {
+        const memberId = req.query.memberId ? parseInt(req.query.memberId, 10) : null;
+        if (memberId) {
+            const records = await attendanceModel.getByMember(memberId);
+            return res.json(records);
+        }
         const records = await attendanceModel.getAllRecords(req.user);
         res.json(records);
     } catch (err) {

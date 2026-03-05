@@ -1,7 +1,13 @@
 const token = localStorage.getItem("token");
+const payload = token ? JSON.parse(atob(token.split('.')[1])) : null;
+const role = payload ? payload.role : null;
 
 if (!token && window.location.pathname.endsWith('members.html')) {
     window.location.href = 'index.html';
+}
+
+if (role === 'normaluser') {
+    window.location.href = 'dashboard.html';
 }
 
 const membersTable = document.getElementById("membersTable");
@@ -13,24 +19,39 @@ async function fetchMembers() {
         headers: { "Authorization": `Bearer ${token}` }
     });
     const data = await res.json();
+    data.sort((a, b) => Number(a.id) - Number(b.id));
     
     const tbody = membersTable.querySelector('tbody');
     tbody.innerHTML = "";
     
-    data.forEach(m => {
+    data.forEach((m, index) => {
         const tr = document.createElement("tr");
+        const displayId = index + 1;
         const nameLink = `<a href="member-graph.html?id=${m.id}&name=${encodeURIComponent(m.name)}" style="color:#2196F3; text-decoration:none; cursor:pointer; font-weight:bold;">${m.name}</a>`;
         tr.innerHTML = `
-            <td>${m.id}</td>
+            <td title="DB ID: ${m.id}">${displayId}</td>
             <td>${nameLink}</td>
             <td>${m.email || ''}</td>
             <td>${m.phone || ''}</td>
             <td>${m.address || ''}</td>
-            <td>
-                <button class="edit-btn" onclick="openEditModal(${m.id}, '${m.name.replace(/'/g, "\\'\'")}', '${(m.email || '').replace(/'/g, "\\'\'")}', '${(m.phone || '').replace(/'/g, "\\'\'")}', '${(m.address || '').replace(/'/g, "\\'\'")}')" style="background-color:#2196F3; color:white; padding:8px 12px; margin:0 3px; border:none; border-radius:3px; cursor:pointer; font-weight:bold;">Edit</button>
-                <button class="delete-btn" onclick="deleteMember(${m.id})" style="background-color:#f44336; color:white; padding:8px 12px; margin:0 3px; border:none; border-radius:3px; cursor:pointer; font-weight:bold;">Delete</button>
-            </td>
+            <td class="actions-cell"></td>
         `;
+
+        const actionsCell = tr.querySelector('.actions-cell');
+        const editBtn = document.createElement('button');
+        editBtn.className = 'edit-btn';
+        editBtn.textContent = 'Edit';
+        editBtn.style.cssText = 'background-color:#2196F3; color:white; padding:8px 12px; margin:0 3px; border:none; border-radius:3px; cursor:pointer; font-weight:bold;';
+        editBtn.addEventListener('click', () => openEditModal(m.id, m.name, m.email || '', m.phone || '', m.address || ''));
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.style.cssText = 'background-color:#f44336; color:white; padding:8px 12px; margin:0 3px; border:none; border-radius:3px; cursor:pointer; font-weight:bold;';
+        deleteBtn.addEventListener('click', () => deleteMember(m.id));
+
+        actionsCell.appendChild(editBtn);
+        actionsCell.appendChild(deleteBtn);
         tbody.appendChild(tr);
     });
 }
@@ -88,7 +109,7 @@ if (editMemberForm) {
 
 // Delete member
 window.deleteMember = async function(id) {
-    if (!confirm('Are you sure you want to delete this member? All related data (attendance, donations) will also be deleted.')) return;
+    if (!confirm('Are you sure you want to delete this member? All related data (attendance, contributions) will also be deleted.')) return;
     
     try {
         const res = await fetch(`/api/members/${id}`, {

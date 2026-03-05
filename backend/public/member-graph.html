@@ -6,6 +6,7 @@
 <title>Member Attendance Graph</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/church-theme.css">
 <style>
     body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
@@ -18,7 +19,7 @@
     @media (max-width: 768px) { .charts-container { grid-template-columns: 1fr; } }
 </style>
 </head>
-<body>
+<body class="church-theme">
 <div class="header">
     <h1 id="memberName">Loading...</h1>
     <button onclick="window.location.href='members.html'" style="background-color:#2196f3; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">← Back to Members</button>
@@ -27,10 +28,19 @@
 <div class="controls">
     <label for="periodSelect">Period:</label>
     <select id="periodSelect">
-        <option value="1">Current Month</option>
-        <option value="3">Last 3 Months</option>
-        <option value="6">Last 6 Months</option>
-        <option value="12">Current Year</option>
+        <option value="01">January</option>
+        <option value="02">February</option>
+        <option value="03">March</option>
+        <option value="04">April</option>
+        <option value="05">May</option>
+        <option value="06">June</option>
+        <option value="07">July</option>
+        <option value="08">August</option>
+        <option value="09">September</option>
+        <option value="10">October</option>
+        <option value="11">November</option>
+        <option value="12">December</option>
+        <option value="year">Whole Year Average</option>
     </select>
     <button onclick="loadMemberAttendanceGraph()">Refresh</button>
     <button onclick="downloadMemberReport()" style="background-color:#ff9800;">Download Report</button>

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Announcements</title>
 <link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/church-theme.css">
 <style>
     .section { border: 1px solid #ddd; padding: 20px; margin: 20px 0; border-radius: 8px; }
     .admin-section { background-color: #fff3cd; border-color: #ffc107; }
@@ -15,7 +16,7 @@
     .success { color: #4CAF50; }
 </style>
 </head>
-<body>
+<body class="church-theme">
 <nav style="margin-bottom:16px;">
     <button onclick="window.location.href='dashboard.html'" style="background-color:#2196f3; color:white; border:none; padding:8px 16px; border-radius:4px; cursor:pointer; margin-right:10px;">← Back</button>
     <a href="dashboard.html">Dashboard</a> | <a href="graphs.html">Graphs</a>
@@ -43,8 +44,9 @@
     <h3>📢 Create Announcement</h3>
     <input id="title" placeholder="Title"><br>
     <textarea id="message" placeholder="Message"></textarea><br>
-    <label><input type="checkbox" id="sendEmail"> Send email to members</label><br>
+    <label id="sendEmailOption"><input type="checkbox" id="sendEmail"> Send email to members</label><br>
     <button id="createBtn">Create</button>
+    <div id="createStatus"></div>
 </div>
 <hr>
 <h3>Recent Announcements</h3>

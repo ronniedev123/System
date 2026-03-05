@@ -47,13 +47,10 @@ style="float:left; background-color:#2196f3; color:white; border:none; padding:1
 <form id="attendanceForm">
 
 <label>Member Name:</label>
-<div style="position:relative;">
-<input type="text" id="member_name" required placeholder="Type member name"
-style="width:100%; padding:10px; border:1px solid #ccc; border-radius:4px;">
-<div id="suggestions"
-style="position:absolute; top:100%; left:0; right:0; border:1px solid #ccc; background:white;
-max-height:200px; overflow-y:auto; display:none; z-index:100;"></div>
-</div>
+<select id="member_id" required 
+style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ccc; border-radius:4px;">
+<option value="">-- Select Member --</option>
+</select>
 
 <label>Date & Time (optional):</label>
 <input type="datetime-local" id="date"
@@ -91,6 +88,35 @@ Admins: Click any cell to edit attendance
 </div>
 </div>
 
+<!-- Create Member Modal -->
+<div id="memberModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; padding:20px;">
+<div style="background:white; margin:50px auto; padding:30px; border-radius:8px; max-width:400px;">
+<h2>Create New Member</h2>
+<form id="createMemberForm">
+<label>Name:</label>
+<input type="text" id="newMemberName" required style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ccc; border-radius:4px;">
+
+<label>Email:</label>
+<input type="email" id="newMemberEmail" style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ccc; border-radius:4px;">
+
+<label>Phone:</label>
+<input type="tel" id="newMemberPhone" style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ccc; border-radius:4px;">
+
+<label>Address:</label>
+<input type="text" id="newMemberAddress" style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ccc; border-radius:4px;">
+
+<div style="display:flex; gap:10px;">
+<button type="submit" style="flex:1; background:#4CAF50; color:white; border:none; padding:10px; border-radius:4px; cursor:pointer;">
+Create Member
+</button>
+<button type="button" id="closeModalBtn" style="flex:1; background:#999; color:white; border:none; padding:10px; border-radius:4px; cursor:pointer;">
+Cancel
+</button>
+</div>
+</form>
+</div>
+</div>
+
 <script>
 
 const token = localStorage.getItem('token');
@@ -109,6 +135,91 @@ document.getElementById('logoutBtn').addEventListener('click',()=>{
     localStorage.removeItem('token');
     window.location.href="index.html";
 });
+
+// Populate member dropdown
+async function populateMemberDropdown(){
+    try {
+        const res = await fetch('/api/members', {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        if(res.status === 401){
+            alert('Session expired. Please log in again.');
+            localStorage.removeItem('token');
+            window.location.href='index.html';
+            return;
+        }
+        const members = await res.json();
+        const sel = document.getElementById('member_id');
+        sel.innerHTML = '<option value="">-- Select Member --</option>';
+        if(members.length === 0){
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = 'No members available';
+            opt.disabled = true;
+            sel.appendChild(opt);
+            sel.disabled = true;
+        } else {
+            members.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m.id;
+                opt.textContent = m.name;
+                sel.appendChild(opt);
+            });
+            sel.disabled = false;
+        }
+    } catch(e) { 
+        console.error('Error populating members:', e); 
+        alert('Unable to load members. See console for details.');
+    }
+}
+
+// Mark attendance form handler
+const attendanceForm = document.getElementById('attendanceForm');
+if (attendanceForm) {
+    attendanceForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const memberId = document.getElementById('member_id').value;
+        let date = document.getElementById('date').value || null;
+        
+        if (!memberId) {
+            alert('Please select a member');
+            return;
+        }
+        
+        const payload = { memberId: parseInt(memberId), date };
+        console.log('Submitting attendance payload:', payload);
+        
+        try {
+            const res = await fetch('/api/attendance', {
+                method: 'POST',
+                headers: { 
+                    "Content-Type": "application/json", 
+                    "Authorization": `Bearer ${token}` 
+                },
+                body: JSON.stringify(payload)
+            });
+            const text = await res.text();
+            let json;
+            try { json = JSON.parse(text); } catch(e){ json = { message: text }; }
+            console.log('Attendance response', res.status, json);
+            
+            if (res.ok) {
+                alert('Attendance marked successfully');
+                attendanceForm.reset();
+                loadAttendance(); // Reload the summary table
+            } else if (res.status === 401) {
+                alert('Session expired. Please login again.');
+                localStorage.removeItem('token');
+                window.location.href = 'index.html';
+            } else {
+                alert(json.error || json.message || 'Error marking attendance');
+            }
+        } catch(err) {
+            console.error('Error submitting attendance:', err);
+            alert('Error marking attendance. See console for details.');
+        }
+    });
+}
 
 function populateMonthYear(){
     const monthSel = document.getElementById('monthSelect');
@@ -133,83 +244,205 @@ function populateMonthYear(){
 }
 
 async function loadAttendance(){
-try{
-
-const month=parseInt(document.getElementById('monthSelect').value);
-const year=parseInt(document.getElementById('yearSelect').value);
-
-const monthName=new Date(0,month).toLocaleString('default',{month:'long'});
-document.getElementById('reportTitle').textContent=`Attendance Summary - ${monthName} ${year}`;
-
-document.getElementById('adminHint').style.display=(role==='admin')?'block':'none';
-
-const [mRes,aRes]=await Promise.all([
-fetch('/api/members',{headers:{Authorization:`Bearer ${token}`}}),
-fetch('/api/attendance',{headers:{Authorization:`Bearer ${token}`}})
-]);
-
-const members=await mRes.json();
-const records=await aRes.json();
-
-const sundays=[];
-const start=new Date(year,month,1);
-const end=new Date(year,month+1,0);
-
-for(let d=new Date(start);d<=end;d.setDate(d.getDate()+1)){
-if(d.getDay()===0) sundays.push(new Date(d));
+    try {
+        const month = parseInt(document.getElementById('monthSelect').value);
+        const year = parseInt(document.getElementById('yearSelect').value);
+        
+        const monthName = new Date(0, month).toLocaleString('default', {month:'long'});
+        document.getElementById('reportTitle').textContent = `Attendance Summary - ${monthName} ${year}`;
+        
+        document.getElementById('adminHint').style.display = (role === 'admin') ? 'block' : 'none';
+        
+        // Fetch members and attendance records
+        const [mRes, aRes] = await Promise.all([
+            fetch('/api/members', {headers: {Authorization: `Bearer ${token}`}}),
+            fetch('/api/attendance', {headers: {Authorization: `Bearer ${token}`}})
+        ]);
+        
+        const members = await mRes.json();
+        const records = await aRes.json();
+        
+        // Calculate all days in the selected month
+        const days = [];
+        const start = new Date(year, month, 1);
+        const end = new Date(year, month + 1, 0);
+        
+        for(let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            days.push(new Date(d));
+        }
+        
+        // Build attendance map keyed by date string
+        const attendanceMap = {};
+        records.forEach(r => {
+            const dt = r.check_in || r.date || r.created_at;
+            if(!dt) return;
+            const datePart = dt.split('T')[0];
+            if(!attendanceMap[datePart]) attendanceMap[datePart] = new Set();
+            attendanceMap[datePart].add(String(r.member_id || r.memberId));
+        });
+        
+        // Build table header with all days
+        const thead = document.getElementById('attendanceHead');
+        thead.innerHTML = '';
+        const headerRow = document.createElement('tr');
+        headerRow.innerHTML = '<th>Member</th>' + 
+            days.map(d => `<th>${d.getDate()}/${d.getMonth()+1}</th>`).join('');
+        thead.appendChild(headerRow);
+        
+        // Build table body
+        const tbody = document.getElementById('attendanceTable');
+        tbody.innerHTML = '';
+        
+        members.forEach(m => {
+            const tr = document.createElement('tr');
+            let rowHtml = `<td><strong>${m.name}</strong></td>`;
+            
+            days.forEach(d => {
+                const yyyy = d.getFullYear();
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const dd = String(d.getDate()).padStart(2, '0');
+                const key = `${yyyy}-${mm}-${dd}`;
+                const present = attendanceMap[key] && attendanceMap[key].has(String(m.id));
+                
+                if(role === 'admin') {
+                    rowHtml += `<td class="clickable-cell" onclick="editAttendance(${m.id}, '${key}', ${present})" 
+                        title="Click to toggle attendance">
+                        ${present ? '<span style="color:green;font-weight:bold;">✓</span>' :
+                          '<span style="color:red;">✗</span>'}
+                    </td>`;
+                } else {
+                    rowHtml += `<td>${present ? '<span style="color:green;font-weight:bold;">✓</span>' :
+                          '<span style="color:red;">✗</span>'}</td>`;
+                }
+            });
+            
+            tr.innerHTML = rowHtml;
+            tbody.appendChild(tr);
+        });
+        
+    } catch(err) {
+        console.error('Error loading attendance:', err);
+        alert('Error loading attendance');
+    }
 }
 
-const attendanceMap={};
-records.forEach(r=>{
-const dt=r.check_in||r.date||r.created_at;
-if(!dt) return;
-const datePart=dt.split('T')[0];
-if(!attendanceMap[datePart]) attendanceMap[datePart]=new Set();
-attendanceMap[datePart].add(String(r.member_id||r.memberId));
-});
-
-const thead=document.getElementById('attendanceHead');
-thead.innerHTML='';
-const headerRow=document.createElement('tr');
-headerRow.innerHTML='<th>Member</th>'+sundays.map(s=>`<th>${s.toLocaleDateString()}</th>`).join('');
-thead.appendChild(headerRow);
-
-const tbody=document.getElementById('attendanceTable');
-tbody.innerHTML='';
-
-members.forEach(m=>{
-const tr=document.createElement('tr');
-let rowHtml=`<td>${m.name}</td>`;
-
-sundays.forEach(s=>{
-const yyyy=s.getFullYear();
-const mm=String(s.getMonth()+1).padStart(2,'0');
-const dd=String(s.getDate()).padStart(2,'0');
-const key=`${yyyy}-${mm}-${dd}`;
-const present=attendanceMap[key]&&attendanceMap[key].has(String(m.id));
-
-if(role==='admin'){
-rowHtml+=`<td class="clickable-cell" onclick="editAttendance(${m.id},'${key}',${present})">
-${present?'<span style="color:green">Present</span>':'<span style="color:red">Absent</span>'}
-</td>`;
-}else{
-rowHtml+=`<td>${present?'<span style="color:green">Present</span>':'<span style="color:red">Absent</span>'}</td>`;
+// Edit attendance (toggle presence/absence)
+async function editAttendance(memberId, dateStr, currentStatus) {
+    if(role !== 'admin') {
+        alert('Only admins can edit attendance');
+        return;
+    }
+    
+    try {
+        // If currently present, delete the record; if absent, add it
+        if(currentStatus) {
+            // Delete the attendance record
+            const res = await fetch('/api/attendance', {
+                method: 'DELETE',
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ memberId, date: dateStr })
+            });
+            
+            if(!res.ok) {
+                const json = await res.json();
+                alert(json.error || 'Error deleting attendance');
+                return;
+            }
+        } else {
+            // Add attendance record for this date
+            const res = await fetch('/api/attendance', {
+                method: 'POST',
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ memberId, date: dateStr + ' 09:00:00' })
+            });
+            
+            if(!res.ok) {
+                const json = await res.json();
+                alert(json.error || 'Error marking attendance');
+                return;
+            }
+        }
+        
+        // Reload the table
+        loadAttendance();
+    } catch(err) {
+        console.error('Error toggling attendance:', err);
+        alert('Error updating attendance');
+    }
 }
-});
 
-tr.innerHTML=rowHtml;
-tbody.appendChild(tr);
-});
-
-}catch(err){
-console.error(err);
-alert('Error loading attendance');
-}
-}
-
+// Initialize page
+populateMemberDropdown();
 populateMonthYear();
-document.getElementById('monthSelect').addEventListener('change',loadAttendance);
-document.getElementById('yearSelect').addEventListener('change',loadAttendance);
+document.getElementById('monthSelect').addEventListener('change', loadAttendance);
+document.getElementById('yearSelect').addEventListener('change', loadAttendance);
+
+// Create member modal
+const memberModal = document.getElementById('memberModal');
+const createMemberBtn = document.getElementById('createMemberBtn');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const createMemberForm = document.getElementById('createMemberForm');
+
+if (createMemberBtn) {
+    createMemberBtn.addEventListener('click', () => {
+        memberModal.style.display = 'block';
+    });
+}
+
+if (closeModalBtn) {
+    closeModalBtn.addEventListener('click', () => {
+        memberModal.style.display = 'none';
+        createMemberForm.reset();
+    });
+}
+
+if (createMemberForm) {
+    createMemberForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        try {
+            const res = await fetch('/api/members', {
+                method: 'POST',
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    name: document.getElementById('newMemberName').value,
+                    email: document.getElementById('newMemberEmail').value || null,
+                    phone: document.getElementById('newMemberPhone').value || null,
+                    address: document.getElementById('newMemberAddress').value || null
+                })
+            });
+            
+            const json = await res.json();
+            if (res.ok) {
+                alert('Member created successfully');
+                memberModal.style.display = 'none';
+                createMemberForm.reset();
+                populateMemberDropdown(); // Refresh the dropdown
+            } else {
+                alert(json.error || 'Error creating member');
+            }
+        } catch(err) {
+            console.error('Error:', err);
+            alert('Error creating member');
+        }
+    });
+}
+
+// Close modal when clicking outside
+memberModal.addEventListener('click', (e) => {
+    if (e.target === memberModal) {
+        memberModal.style.display = 'none';
+    }
+});
 
 loadAttendance();
 

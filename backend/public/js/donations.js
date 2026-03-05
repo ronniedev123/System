@@ -1,6 +1,12 @@
 const token = localStorage.getItem("token");
 const donationsTable = document.getElementById("donationsTable");
 const donationForm = document.getElementById("donationForm");
+const totalContributedEl = document.getElementById("totalContributed");
+const showDonateBtn = document.getElementById("showDonateBtn");
+const cancelDonateBtn = document.getElementById("cancelDonateBtn");
+const donateFormDiv = document.getElementById("donateFormDiv");
+const refreshBtn = document.getElementById("refreshBtn");
+const logoutBtn = document.getElementById("logoutBtn");
 
 const payload = token ? JSON.parse(atob(token.split('.')[1])) : null;
 const role = payload ? payload.role : null;
@@ -14,19 +20,26 @@ async function fetchDonations(){
         headers: { "Authorization": `Bearer ${token}` }
     });
     const data = await res.json();
+    let total = 0;
     donationsTable.innerHTML = "";
     data.forEach(d=>{
+        const amountNum = Number(d.amount) || 0;
+        total += amountNum;
         const tr = document.createElement("tr");
         const actions = (role === 'admin') ?
-            `<button onclick="editDonation(${d.id})">Edit</button> <button onclick="deleteDonation(${d.id})">Delete</button>` : '';
-        tr.innerHTML = `<td>${d.id}</td><td>${d.user_name || d.donor_name || ''}</td><td>${d.amount}</td><td>${d.description || ''}</td><td>${d.date}</td><td>${actions}</td>`;
+            `<button onclick="editDonation(${d.id})">Edit</button> <button onclick="deleteDonation(${d.id})">Delete</button>` : '<span style="opacity:.7;">-</span>';
+        tr.innerHTML = `<td>${d.id}</td><td>${d.user_name || d.donor_name || ''}</td><td>KSH ${amountNum.toLocaleString()}</td><td>${d.description || ''}</td><td>${d.date || ''}</td><td>${actions}</td>`;
         donationsTable.appendChild(tr);
     });
+
+    if (totalContributedEl) {
+        totalContributedEl.textContent = `KSH ${total.toLocaleString()}`;
+    }
 }
 
 // Admin actions
 window.deleteDonation = async function(id){
-    if(!confirm('Delete this donation?')) return;
+    if(!confirm('Delete this contribution?')) return;
     try{
         const res = await fetch(`/api/donations/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
         if(res.ok) fetchDonations();
@@ -74,14 +87,39 @@ if(donationForm){
             });
             
             if(res.ok){
-                alert('Donation added successfully');
+                alert('Contribution added successfully');
                 donationForm.reset();
+                if (donateFormDiv) donateFormDiv.classList.add('hidden');
                 fetchDonations();
             } else {
                 const data = await res.json();
-                alert(data.error || 'Failed to add donation');
+                alert(data.error || 'Failed to add contribution');
             }
         }catch(err){ console.error(err); alert('Server error'); }
+    });
+}
+
+if (showDonateBtn) {
+    showDonateBtn.addEventListener('click', () => {
+        donateFormDiv?.classList.remove('hidden');
+        document.getElementById("member_name")?.focus();
+    });
+}
+
+if (cancelDonateBtn) {
+    cancelDonateBtn.addEventListener('click', () => {
+        donateFormDiv?.classList.add('hidden');
+    });
+}
+
+if (refreshBtn) {
+    refreshBtn.addEventListener('click', fetchDonations);
+}
+
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+        localStorage.removeItem('token');
+        window.location.href = 'index.html';
     });
 }
 

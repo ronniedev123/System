@@ -3,37 +3,59 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Donations</title>
+<title>Contributions Types</title>
 <link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/church-theme.css">
 <style>
-body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; }
-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
-th { background: #f2f2f2; }
-button { padding: 5px 10px; cursor: pointer; }
-#logoutBtn { float: right; background-color: #f44336; color: white; border: none; border-radius: 5px; }
+.page { max-width: 980px; margin: 32px auto; padding: 20px; }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.types-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin-top: 20px; }
+.type-card {
+  background: rgba(6, 17, 38, 0.72);
+  border: 1px solid rgba(212, 160, 23, 0.35);
+  border-radius: 14px;
+  box-shadow: 0 14px 30px rgba(0,0,0,0.26);
+  padding: 20px;
+}
+.type-card h3 { margin-top: 0; }
+.type-card p { color: rgba(251,248,239,0.88); min-height: 54px; }
+.type-card button { width: 100%; margin-top: 10px; }
 </style>
 </head>
-<body>
-<button id="backBtn" onclick="window.location.href='dashboard.html'" style="float:left; background-color:#2196f3; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; margin-right:10px;">← Back</button>
-<button id="logoutBtn">Logout</button>
-<h1>Donations</h1>
+<body class="church-theme">
+<div class="page">
+    <div class="topbar">
+        <button id="backBtn" onclick="window.location.href='dashboard.html'">&larr; Back</button>
+        <button id="logoutBtn" onclick="localStorage.removeItem('token'); window.location.href='index.html';">Logout</button>
+    </div>
 
-<div id="donateFormDiv">
-<form id="donationForm">
-    <label for="member_name">Member Name</label>
-    <input type="text" id="member_name" placeholder="Enter member name" required />
-    <input type="number" id="amount" placeholder="Amount" required />
-    <input type="text" id="description" placeholder="Description" />
-    <button type="submit">Donate</button>
-</form>
+    <h1>Select Contribution Type</h1>
+    <p>Please choose the contribution category you want to view or contribute to.</p>
+
+    <div class="types-grid">
+      <section class="type-card">
+        <h3>Missions Contributions</h3>
+        <p>Support outreach, evangelism missions, and ministry extension programs.</p>
+        <button onclick="window.location.href='contribution.html?type=missions'">Open Missions</button>
+      </section>
+
+      <section class="type-card">
+        <h3>Tithes and Offerings</h3>
+        <p>View and contribute to regular tithes and offerings for church operations.</p>
+        <button onclick="window.location.href='contribution.html?type=tithes-offerings'">Open Tithes and Offerings</button>
+      </section>
+
+      <section class="type-card">
+        <h3>Tabernacle Construction</h3>
+        <p>Track and support contributions for tabernacle construction projects.</p>
+        <button onclick="window.location.href='contribution.html?type=tabernacle-construction'">Open Tabernacle Construction</button>
+      </section>
+    </div>
 </div>
-
-<table>
-<thead><tr><th>ID</th><th>User</th><th>Amount</th><th>Description</th><th>Date</th><th>Actions</th></tr></thead>
-<tbody id="donationsTable"></tbody>
-</table>
-
-<script src="js/donations.js"></script>
+<script>
+if (!localStorage.getItem('token')) {
+  window.location.href = 'index.html';
+}
+</script>
 </body>
 </html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contribution Details</title>
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/church-theme.css">
+<style>
+.page { max-width: 1100px; margin: 32px auto; padding: 20px; }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.title { margin: 8px 0 16px; }
+.grid { display: grid; gap: 20px; grid-template-columns: 1fr 1fr; }
+.card {
+    background: rgba(6, 17, 38, 0.72);
+    border: 1px solid rgba(212, 160, 23, 0.35);
+    border-radius: 14px;
+    box-shadow: 0 14px 30px rgba(0,0,0,0.26);
+    padding: 18px;
+}
+.account-line { display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-bottom:1px dashed rgba(212,160,23,0.3);}
+.account-line:last-child { border-bottom:none; }
+.muted { color: rgba(251, 248, 239, 0.85); }
+.total {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #f3d06e;
+    margin-top: 10px;
+}
+.actions { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+.hidden { display: none; }
+.table-wrap { overflow-x:auto; margin-top: 20px; }
+table { width:100%; border-collapse: collapse; }
+th, td { padding: 10px; text-align: left; border: 1px solid rgba(20, 30, 55, 0.2); }
+th { white-space: nowrap; }
+@media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body class="church-theme">
+<div class="page">
+    <div class="topbar">
+        <button id="backBtn" onclick="window.location.href='donations.html'">&larr; Contribution Types</button>
+        <button id="logoutBtn">Logout</button>
+    </div>
+
+    <h1 id="contribTitle" class="title">Contributions</h1>
+
+    <div class="grid">
+        <section class="card">
+            <h3>Contribution Account Details</h3>
+            <p class="muted">Use any of the following approved channels:</p>
+            <div class="account-line"><span>Bank Name</span><strong id="accBank"></strong></div>
+            <div class="account-line"><span>Account Name</span><strong id="accName"></strong></div>
+            <div class="account-line"><span>Account Number</span><strong id="accNumber"></strong></div>
+            <div class="account-line"><span>M-Pesa Paybill</span><strong id="accPaybill"></strong></div>
+            <div class="account-line"><span>Account Reference</span><strong id="accRef"></strong></div>
+        </section>
+
+        <section class="card">
+            <h3>Total Contributed</h3>
+            <p class="muted">Live total for this contribution type</p>
+            <div id="totalContributed" class="total">KSH 0</div>
+            <div class="actions">
+                <button id="showDonateBtn">Contribute Now</button>
+                <button id="refreshBtn">Refresh</button>
+            </div>
+        </section>
+    </div>
+
+    <section id="donateFormDiv" class="card hidden" style="margin-top:20px;">
+        <h3>Make a Contribution</h3>
+        <form id="donationForm">
+            <label for="member_name">Member Name</label>
+            <input type="text" id="member_name" placeholder="Enter member name" required />
+            <label for="amount">Amount</label>
+            <input type="number" id="amount" min="1" step="0.01" placeholder="Enter amount" required />
+            <label for="description">Description</label>
+            <input type="text" id="description" placeholder="Optional note" />
+            <div class="actions">
+                <button type="submit">Submit Contribution</button>
+                <button type="button" id="cancelDonateBtn">Cancel</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="card table-wrap">
+        <h3>Members Who Have Contributed</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Member</th>
+                    <th>Amount</th>
+                    <th>Description</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="donationsTable"></tbody>
+        </table>
+    </section>
+</div>
+
+<script src="js/contribution.js"></script>
+</body>
+</html>

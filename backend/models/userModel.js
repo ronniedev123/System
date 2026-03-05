@@ -1,6 +1,6 @@
 // backend/models/userModel.js
 const db = require("../utils/db");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 
 // -----------------------------
 // Create Admin If Not Exists

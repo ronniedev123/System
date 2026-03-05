@@ -1,10 +1,12 @@
 const donationsModel = require('../models/donationsModel');
 const Member = require('../models/memberModel');
 
+const ALLOWED_TYPES = new Set(['missions', 'tithes-offerings', 'tabernacle-construction', 'general']);
+
 // Add donation
 exports.addDonation = async (req, res) => {
     try {
-        let { memberId, memberName, amount, date, description } = req.body;
+        let { memberId, memberName, amount, date, description, contributionType } = req.body;
         
         // If memberName is provided, look up the member by name
         if (memberName && !memberId) {
@@ -30,9 +32,20 @@ exports.addDonation = async (req, res) => {
         // Normalize optional fields
         const donation_date = date === undefined ? null : date;
         description = description === undefined ? null : description;
+        contributionType = contributionType || 'general';
+        if (!ALLOWED_TYPES.has(contributionType)) {
+            return res.status(400).json({ error: 'Invalid contributionType' });
+        }
 
-        const donation = await donationsModel.addDonation({ donor_name, amount, donation_date, createdBy: req.user.id, description });
-        res.json({ message: "Donation added", donation });
+        const donation = await donationsModel.addDonation({
+            donor_name,
+            amount,
+            donation_date,
+            contribution_type: contributionType,
+            createdBy: req.user.id,
+            description
+        });
+        res.json({ message: "Contribution added", donation });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -41,7 +54,11 @@ exports.addDonation = async (req, res) => {
 // Get donations
 exports.getDonations = async (req, res) => {
     try {
-        const donations = await donationsModel.getAll(req.user);
+        const type = req.query.type || 'all';
+        if (type !== 'all' && !ALLOWED_TYPES.has(type)) {
+            return res.status(400).json({ error: 'Invalid type filter' });
+        }
+        const donations = await donationsModel.getAll(req.user, type);
         res.json(donations);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -53,7 +70,7 @@ exports.updateDonation = async (req, res) => {
     try {
         if (!req.user || req.user.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
         const id = req.params.id;
-        const { amount, date, description, donor_name } = req.body;
+        const { amount, date, description, donor_name, contributionType } = req.body;
         // Fetch existing
         const existing = await donationsModel.getById(id);
         if (!existing) return res.status(404).json({ error: 'Donation not found' });
@@ -62,9 +79,19 @@ exports.updateDonation = async (req, res) => {
         const donationDateFinal = date === undefined ? existing.date : date;
         const descriptionFinal = description === undefined ? existing.description : description;
         const amountFinal = amount === undefined ? existing.amount : amount;
+        const typeFinal = contributionType === undefined ? existing.contribution_type : contributionType;
+        if (!ALLOWED_TYPES.has(typeFinal)) {
+            return res.status(400).json({ error: 'Invalid contributionType' });
+        }
 
-        const affected = await donationsModel.updateById(id, { donor_name: donorNameFinal, amount: amountFinal, donation_date: donationDateFinal, description: descriptionFinal });
-        if (affected > 0) return res.json({ message: 'Donation updated' });
+        const affected = await donationsModel.updateById(id, {
+            donor_name: donorNameFinal,
+            amount: amountFinal,
+            donation_date: donationDateFinal,
+            contribution_type: typeFinal,
+            description: descriptionFinal
+        });
+        if (affected > 0) return res.json({ message: 'Contribution updated' });
         res.status(500).json({ error: 'Update failed' });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -79,7 +106,7 @@ exports.deleteDonation = async (req, res) => {
         const existing = await donationsModel.getById(id);
         if (!existing) return res.status(404).json({ error: 'Donation not found' });
         const affected = await donationsModel.deleteById(id);
-        if (affected > 0) return res.json({ message: 'Donation deleted' });
+        if (affected > 0) return res.json({ message: 'Contribution deleted' });
         res.status(500).json({ error: 'Delete failed' });
     } catch (err) {
         res.status(500).json({ error: err.message });

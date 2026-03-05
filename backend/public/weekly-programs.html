@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weekly Programs</title>
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/church-theme.css">
+<style>
+.page { max-width: 980px; margin: 32px auto; padding: 20px; }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+.card {
+    background: rgba(6, 17, 38, 0.72);
+    border: 1px solid rgba(212, 160, 23, 0.35);
+    border-radius: 14px;
+    box-shadow: 0 14px 30px rgba(0,0,0,0.26);
+    padding: 18px;
+}
+table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+th, td { border: 1px solid rgba(20, 30, 55, 0.2); padding: 10px; text-align: left; }
+.note { margin-top: 14px; color: rgba(251,248,239,0.88); }
+</style>
+</head>
+<body class="church-theme">
+<div class="page">
+    <div class="topbar">
+        <button id="backBtn" onclick="window.location.href='dashboard.html'">&larr; Back</button>
+        <button id="logoutBtn">Logout</button>
+    </div>
+
+    <section class="card">
+        <h1>Weekly Programs</h1>
+        <p>Ministry of Repentance and Holiness, Umoja Main Altar</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Day</th>
+                    <th>Program</th>
+                    <th>Time</th>
+                    <th>Venue</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Monday</td><td>Prayer Service</td><td>6:00 PM - 7:30 PM</td><td>Main Sanctuary</td></tr>
+                <tr><td>Tuesday</td><td>Bible Study</td><td>6:00 PM - 7:30 PM</td><td>Fellowship Hall</td></tr>
+                <tr><td>Wednesday</td><td>Youth Fellowship</td><td>5:30 PM - 7:30 PM</td><td>Youth Chapel</td></tr>
+                <tr><td>Thursday</td><td>Intercessory Prayers</td><td>6:00 PM - 7:30 PM</td><td>Main Sanctuary</td></tr>
+                <tr><td>Friday</td><td>Kesha / Night Vigil</td><td>9:00 PM - 12:30 AM</td><td>Main Sanctuary</td></tr>
+                <tr><td>Saturday</td><td>Choir Practice</td><td>2:00 PM - 4:00 PM</td><td>Music Room</td></tr>
+                <tr><td>Sunday</td><td>Main Service</td><td>8:00 AM - 12:30 PM</td><td>Main Altar</td></tr>
+            </tbody>
+        </table>
+        <p class="note">For updates to program times, please contact the church office.</p>
+    </section>
+</div>
+
+<script>
+const token = localStorage.getItem('token');
+if (!token) window.location.href = 'index.html';
+
+try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const role = payload.role;
+    if (!['admin', 'user', 'normaluser'].includes(role)) {
+        localStorage.removeItem('token');
+        window.location.href = 'index.html';
+    }
+} catch (e) {
+    localStorage.removeItem('token');
+    window.location.href = 'index.html';
+}
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.removeItem('token');
+    window.location.href = 'index.html';
+});
+</script>
+</body>
+</html>

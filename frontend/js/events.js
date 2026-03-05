@@ -7,7 +7,7 @@ if (!token && window.location.pathname.endsWith('events.html')) {
 }
 
 async function fetchEvents(){
-    const res = await fetch("http://localhost:3000/api/events", {
+    const res = await fetch("/api/events", {
         headers: { "Authorization": `Bearer ${token}` }
     });
     const data = await res.json();
@@ -25,7 +25,7 @@ if(eventForm){
         const title = document.getElementById("title").value;
         const description = document.getElementById("description")?.value || null;
         const date = document.getElementById("date").value;
-        await fetch("http://localhost:3000/api/events/add", {
+        await fetch("/api/events", {
             method:"POST",
             headers: { "Content-Type":"application/json", "Authorization": `Bearer ${token}` },
             body: JSON.stringify({title,description,date})

@@ -24,8 +24,10 @@ Required env vars:
 ```bash
 cd backend
 npm install
-npm run start
+npm run start    # server will automatically find a free port if 3000 is busy
 ```
+
+> **Tip:** if you previously had the server running, kill that process first or supply a different `PORT` in your `.env`. The app will log which port it actually bound to.
 
 Database schema (expected tables & important columns)
 - `users` (id, name, email, password, role)

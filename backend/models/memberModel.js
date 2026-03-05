@@ -11,14 +11,14 @@ exports.createMember = async (member) => {
 
 exports.getMembersByUser = async (userId, role) => {
     // All users (admin and normal) can see all members
-    const [rows] = await db.execute("SELECT * FROM members ORDER BY id DESC");
+    const [rows] = await db.execute("SELECT * FROM members ORDER BY id ASC");
     return rows;
 };
 
 // Promise-based helper for exports and other flows
 exports.getAll = async (user) => {
     // All users (admin and normal) can see all members
-    const [rows] = await db.execute("SELECT * FROM members ORDER BY id DESC");
+    const [rows] = await db.execute("SELECT * FROM members ORDER BY id ASC");
     return rows;
 };
 

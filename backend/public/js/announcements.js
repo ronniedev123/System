@@ -1,6 +1,27 @@
 const token = localStorage.getItem('token');
-const payload = JSON.parse(atob(token.split('.')[1]));
-const role = payload.role;
+
+if (!token) {
+  window.location.href = 'index.html';
+  throw new Error('Missing auth token');
+}
+
+let role = null;
+try {
+  const payload = JSON.parse(atob(token.split('.')[1]));
+  role = payload.role;
+} catch (err) {
+  localStorage.removeItem('token');
+  window.location.href = 'index.html';
+  throw err;
+}
+
+if (role === 'normaluser') {
+  window.location.href = 'dashboard.html';
+}
+
+if (role !== 'admin') {
+  document.getElementById('sendEmailOption')?.setAttribute('style', 'display:none;');
+}
 
 async function loadAnnouncements(){
   const res = await fetch('/api/announcements', { headers: { Authorization: `Bearer ${token}`}});
@@ -49,19 +70,22 @@ if (role === 'admin') {
 }
 
 // Character counter for SMS
-document.getElementById('smsMessage').addEventListener('input', function() {
-  const count = this.value.length;
-  const charCountDiv = document.getElementById('smsCharCount');
-  charCountDiv.textContent = `Characters: ${count} / 160`;
-  if (count > 160) {
-    charCountDiv.style.color = '#f44336';
-  } else {
-    charCountDiv.style.color = '#666';
-  }
-});
+const smsMessageEl = document.getElementById('smsMessage');
+if (smsMessageEl) {
+  smsMessageEl.addEventListener('input', function() {
+    const count = this.value.length;
+    const charCountDiv = document.getElementById('smsCharCount');
+    charCountDiv.textContent = `Characters: ${count} / 160`;
+    if (count > 160) {
+      charCountDiv.style.color = '#f44336';
+    } else {
+      charCountDiv.style.color = '#666';
+    }
+  });
+}
 
 // Send SMS button
-document.getElementById('sendSMSBtn').addEventListener('click', async () => {
+document.getElementById('sendSMSBtn')?.addEventListener('click', async () => {
   const memberId = document.getElementById('memberSelect').value;
   const message = document.getElementById('smsMessage').value.trim();
   const statusDiv = document.getElementById('smsStatus');
@@ -109,17 +133,34 @@ document.getElementById('sendSMSBtn').addEventListener('click', async () => {
   }
 });
 
-document.getElementById('createBtn').addEventListener('click', async ()=>{
+document.getElementById('createBtn')?.addEventListener('click', async ()=>{
   const title = document.getElementById('title').value.trim();
   const message = document.getElementById('message').value.trim();
   const sendEmail = document.getElementById('sendEmail').checked;
+  const statusDiv = document.getElementById('createStatus');
   if(!title || !message) return alert('Title and message required');
+  statusDiv.innerHTML = '<div style="color: #2196F3;">Creating announcement...</div>';
   const res = await fetch('/api/announcements', {
     method:'POST',
     headers: { 'Content-Type':'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify({ title, message, sendEmailToMembers: sendEmail })
   });
-  if(!res.ok) return alert('Failed: ' + await res.text());
+  const data = await res.json().catch(() => ({}));
+  if(!res.ok) {
+    statusDiv.innerHTML = `<div class="error">✗ ${data.error || 'Failed to create announcement'}</div>`;
+    return;
+  }
+
+  let statusMsg = '✓ Announcement created successfully';
+  if (data.emailSummary?.attempted) {
+    if (data.emailSummary.sent) {
+      statusMsg += ` and email sent to ${data.emailSummary.recipients} member(s)`;
+    } else {
+      statusMsg += `. Email was not sent: ${data.emailSummary.error || 'unknown error'}`;
+    }
+  }
+  statusDiv.innerHTML = `<div class="success">${statusMsg}</div>`;
+
   document.getElementById('title').value='';
   document.getElementById('message').value='';
   document.getElementById('sendEmail').checked=false;

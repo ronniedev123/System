@@ -6,10 +6,39 @@ if (!token) {
     window.location.href = 'index.html';
 }
 
+try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    if (payload.role === 'normaluser') {
+        window.location.href = 'dashboard.html';
+    }
+} catch (err) {
+    localStorage.removeItem('token');
+    window.location.href = 'index.html';
+}
+
+function pad2(n) {
+    return String(n).padStart(2, '0');
+}
+
+function dateKeyFromValue(dtValue) {
+    if (!dtValue) return null;
+    const raw = String(dtValue);
+    const datePart = raw.includes('T') ? raw.split('T')[0] : raw.split(' ')[0];
+    if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) return datePart;
+    const parsed = new Date(raw);
+    if (Number.isNaN(parsed.getTime())) return null;
+    return `${parsed.getFullYear()}-${pad2(parsed.getMonth() + 1)}-${pad2(parsed.getDate())}`;
+}
+
+function setDefaultPeriod() {
+    const month = pad2(new Date().getMonth() + 1);
+    const select = document.getElementById('periodSelect');
+    if (select) select.value = month;
+}
+
 async function loadAttendanceChart() {
     const period = document.getElementById('periodSelect').value;
-    const now = new Date();
-    const selectedYear = now.getFullYear();
+    const selectedYear = new Date().getFullYear();
 
     try {
         // Fetch all members
@@ -47,11 +76,10 @@ async function loadAttendanceChart() {
         
         // Build set of all attendance records by date
         const attendanceByDate = {};
-        attendanceData.forEach(r => {
+        attendanceData.forEach((r) => {
             const dt = r.check_in || r.date || r.created_at;
-            if (!dt) return;
-            // Extract date part without timezone conversion
-            const datePart = dt.split('T')[0] || dt.split(' ')[0];
+            const datePart = dateKeyFromValue(dt);
+            if (!datePart) return;
             if (!attendanceByDate[datePart]) attendanceByDate[datePart] = [];
             attendanceByDate[datePart].push(r.member_id || r.memberId);
         });
@@ -100,38 +128,58 @@ async function loadAttendanceChart() {
         });
 
         
-        // Prepare Sunday-by-Sunday chart data
         let sundayLabels = [];
         let sundayPercentages = [];
+        let firstChartLabel = 'Average Attendance %';
 
         if (period !== "year") {
-            const sortedSundays = Object.keys(sundayAttendance).sort().reverse();
-
-            sundayLabels = sortedSundays.map(dateStr => {
+            const sortedSundays = Object.keys(sundayAttendance).sort();
+            sundayLabels = sortedSundays.map((dateStr) => {
                 const [yyyy, mm, dd] = dateStr.split('-');
-                const date = new Date(yyyy, mm - 1, dd);
+                const date = new Date(parseInt(yyyy, 10), parseInt(mm, 10) - 1, parseInt(dd, 10));
                 return date.toLocaleDateString('default', { weekday: 'short', month: 'short', day: 'numeric' });
             });
-
-            sundayPercentages = sortedSundays.map(dateStr => sundayAttendance[dateStr].percent);
+            sundayPercentages = sortedSundays.map((dateStr) => sundayAttendance[dateStr].percent);
+            firstChartLabel = 'Sunday Attendance %';
         }
 
-        // Update bar chart - Sunday by Sunday averages
+        const sortedMonths = Object.keys(monthlyAttendance).sort();
+        const monthLabels = sortedMonths.map((k) => {
+            const [year, month] = k.split('-');
+            return new Date(parseInt(year, 10), parseInt(month, 10) - 1).toLocaleString('default', { month: 'short', year: '2-digit' });
+        });
+
+        const monthlyAverages = sortedMonths.map((k) => {
+            const data = monthlyAttendance[k];
+            return data.sundays.length > 0 ? Math.round(data.totalAttendance / data.sundays.length) : 0;
+        });
+
+        if (period === "year") {
+            sundayLabels = monthLabels;
+            sundayPercentages = monthlyAverages;
+            firstChartLabel = 'Monthly Average Attendance %';
+        }
+
+        // Update line chart
         const ctx1 = document.getElementById('attendanceChart')?.getContext('2d');
         if (ctx1) {
             if (attendanceChartInstance) attendanceChartInstance.destroy();
             attendanceChartInstance = new Chart(ctx1, {
-                type: 'bar',
+                type: 'line',
                 data: {
                     labels: sundayLabels,
                     datasets: [{
-                        label: 'Average Attendance %',
+                        label: firstChartLabel,
                         data: sundayPercentages,
-                        backgroundColor: sundayPercentages.map(p =>
+                        borderColor: '#4CAF50',
+                        backgroundColor: 'rgba(76, 175, 80, 0.15)',
+                        pointBackgroundColor: sundayPercentages.map((p) =>
                             p >= 80 ? '#4CAF50' : (p >= 60 ? '#FFC107' : '#f44336')
                         ),
-                        borderColor: '#333',
-                        borderWidth: 1
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        tension: 0.25,
+                        fill: true
                     }]
                 },
                 options: {
@@ -149,18 +197,10 @@ async function loadAttendanceChart() {
                 }
             });
         }
-        
-        // Update trend chart - monthly trend
-        const sortedMonths = Object.keys(monthlyAttendance).sort().reverse();
-        const monthLabels = sortedMonths.map(k => {
-            const [year, month] = k.split('-');
-            return new Date(year, parseInt(month) - 1).toLocaleString('default', { month: 'short', year: '2-digit' });
-        });
-        
-        const monthlyAverages = sortedMonths.map(k => {
-            const data = monthlyAttendance[k];
-            return data.sundays.length > 0 ? Math.round(data.totalAttendance / data.sundays.length) : 0;
-        });
+
+        const yearAverage = monthlyAverages.length
+            ? Math.round(monthlyAverages.reduce((a, b) => a + b, 0) / monthlyAverages.length)
+            : 0;
         
         const ctx2 = document.getElementById('trendChart')?.getContext('2d');
         if (ctx2) {
@@ -169,15 +209,26 @@ async function loadAttendanceChart() {
                 type: 'line',
                 data: {
                     labels: monthLabels,
-                    datasets: [{
-                        label: 'Average Monthly Attendance %',
-                        data: monthlyAverages,
-                        borderColor: '#2196F3',
-                        backgroundColor: 'rgba(33, 150, 243, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.4
-                    }]
+                    datasets: [
+                        {
+                            label: 'Average Monthly Attendance %',
+                            data: monthlyAverages,
+                            borderColor: '#2196F3',
+                            backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Whole Year Average %',
+                            data: monthLabels.map(() => yearAverage),
+                            borderColor: '#ff9800',
+                            borderDash: [6, 6],
+                            pointRadius: 0,
+                            borderWidth: 2,
+                            fill: false
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
@@ -199,10 +250,10 @@ async function loadAttendanceChart() {
         const tbody = document.getElementById('summaryTableBody');
         tbody.innerHTML = '';
         
-        sortedMonths.forEach(k => {
+        sortedMonths.forEach((k) => {
             const data = monthlyAttendance[k];
             const [year, month] = k.split('-');
-            const monthName = new Date(year, parseInt(month) - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
+            const monthName = new Date(parseInt(year, 10), parseInt(month, 10) - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
             
             const numSundays = data.sundays.length;
             const averagePercent = numSundays > 0 ? Math.round(data.totalAttendance / numSundays) : 0;
@@ -223,6 +274,19 @@ async function loadAttendanceChart() {
             `;
             tbody.appendChild(tr);
         });
+
+        if (period === "year") {
+            const avgRow = document.createElement('tr');
+            avgRow.innerHTML = `
+                <td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">Whole Year Average</td>
+                <td style="border: 1px solid #ddd; padding: 12px; text-align: center;">-</td>
+                <td style="border: 1px solid #ddd; padding: 12px; text-align: center;">-</td>
+                <td style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold; color:#ff9800;">${yearAverage}%</td>
+                <td style="border: 1px solid #ddd; padding: 12px; text-align: center;">-</td>
+                <td style="border: 1px solid #ddd; padding: 12px; text-align: center;">-</td>
+            `;
+            tbody.appendChild(avgRow);
+        }
         
     } catch (err) {
         console.error(err);
@@ -367,4 +431,5 @@ async function downloadAverageReport() {
     }
 }
 
+setDefaultPeriod();
 loadAttendanceChart();

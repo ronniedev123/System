@@ -12,23 +12,49 @@ exports.addAttendance = async ({ memberId, date, createdBy }) => {
     const dd = String(now.getDate()).padStart(2, '0');
     checkInStr = `${yyyy}-${mm}-${dd} 09:00:00`;
   } else if (typeof date === 'string') {
-    // If it's already a formatted string like '2026-02-05 09:00:00', use it directly
-    if (date.includes('-') && date.includes(':')) {
-      checkInStr = date;
+    // Try to parse any string into a proper datetime
+    const parsed = new Date(date);
+    if (!isNaN(parsed.getTime())) {
+      const yyyy = parsed.getFullYear();
+      const mm = String(parsed.getMonth() + 1).padStart(2, '0');
+      const dd = String(parsed.getDate()).padStart(2, '0');
+      const hh = String(parsed.getHours()).padStart(2, '0');
+      const mi = String(parsed.getMinutes()).padStart(2, '0');
+      const ss = String(parsed.getSeconds()).padStart(2, '0');
+      checkInStr = `${yyyy}-${mm}-${dd} ${hh}:${mi}:${ss}`;
+    } else if (date.includes('-') && date.includes(':')) {
+      // Fallback: replace 'T' with space
+      checkInStr = date.replace('T', ' ');
     } else {
-      // If it's an ISO string, extract just the date part and add 09:00:00
-      const datePart = date.split('T')[0];
-      checkInStr = `${datePart} 09:00:00`;
+      // If it's some other string, default to today at 9am
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      checkInStr = `${yyyy}-${mm}-${dd} 09:00:00`;
     }
   } else {
-    // For Date objects, format to local date at 9:00 AM
+    // For Date objects, format fully
     const checkIn = new Date(date);
     const yyyy = checkIn.getFullYear();
     const mm = String(checkIn.getMonth() + 1).padStart(2, '0');
     const dd = String(checkIn.getDate()).padStart(2, '0');
-    checkInStr = `${yyyy}-${mm}-${dd} 09:00:00`;
+    const hh = String(checkIn.getHours()).padStart(2, '0');
+    const mi = String(checkIn.getMinutes()).padStart(2, '0');
+    const ss = String(checkIn.getSeconds()).padStart(2, '0');
+    checkInStr = `${yyyy}-${mm}-${dd} ${hh}:${mi}:${ss}`;
   }
   
+  // Prevent duplicate records for the same member on the same date.
+  const dateOnly = checkInStr.split(' ')[0];
+  const [existing] = await db.execute(
+    "SELECT id, member_id, check_in FROM attendance WHERE member_id = ? AND DATE(check_in) = ? LIMIT 1",
+    [memberId, dateOnly]
+  );
+  if (existing.length > 0) {
+    return { id: existing[0].id, memberId, check_in: existing[0].check_in, alreadyMarked: true };
+  }
+
   const [result] = await db.execute(
     "INSERT INTO attendance (member_id, check_in, created_by) VALUES (?, ?, ?)",
     [memberId, checkInStr, createdBy]

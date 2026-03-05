@@ -3,6 +3,7 @@
 const loginForm = document.getElementById('loginForm');
 const registerForm = document.getElementById('registerForm');
 const errorEl = document.getElementById('error');
+const regErrorEl = document.getElementById('regError');
 
 // ==================== LOGIN ====================
 if (loginForm) {
@@ -41,12 +42,13 @@ if (registerForm) {
         const name = document.getElementById('regName').value;
         const email = document.getElementById('regEmail').value;
         const password = document.getElementById('regPassword').value;
+        const role = document.getElementById('regRole')?.value || 'user';
 
         try {
             const res = await fetch('/api/auth/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, email, password })
+                body: JSON.stringify({ name, email, password, role })
             });
 
             const data = await res.json();
@@ -63,14 +65,14 @@ if (registerForm) {
                     localStorage.setItem('role', loginData.role || (loginData.user && loginData.user.role));
                     window.location.href = 'dashboard.html';
                 } else {
-                    errorEl.textContent = loginData.error || loginData.message || 'Login failed after registration';
+                    if (regErrorEl) regErrorEl.textContent = loginData.error || loginData.message || 'Login failed after registration';
                 }
             } else {
-                errorEl.textContent = data.message || 'Registration failed';
+                if (regErrorEl) regErrorEl.textContent = data.error || data.message || 'Registration failed';
             }
         } catch (err) {
             console.error(err);
-            errorEl.textContent = 'Server error';
+            if (regErrorEl) regErrorEl.textContent = 'Server error';
         }
     });
 }

@@ -4,8 +4,59 @@ dotenv.config();
 
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 
-// Import routes
+const app = express();
+// determine port, try environment then default. we'll attempt to find a free one if default is busy
+let PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+
+// helper to find a free port starting from a given port
+const net = require('net');
+async function findFreePort(start) {
+    return new Promise((resolve) => {
+        const tester = net.createServer();
+        tester.once('error', () => {
+            // port in use, try next
+            resolve(findFreePort(start + 1));
+        });
+        tester.once('listening', () => {
+            const { port } = tester.address();
+            tester.close(() => resolve(port));
+        });
+        tester.listen(start, '0.0.0.0');
+    });
+}
+
+// =====================
+// MIDDLEWARE
+// =====================
+
+// Parse JSON (and handle parse errors gracefully)
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// middleware to convert JSON parse errors into JSON responses
+app.use((err, req, res, next) => {
+    if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+        console.error('JSON parse error:', err.message);
+        return res.status(400).json({ error: 'Invalid JSON payload' });
+    }
+    next();
+});
+
+// CORS (safe version)
+app.use(cors({
+    origin: true,
+    credentials: true
+}));
+
+// Serve static frontend files
+app.use(express.static(path.join(__dirname, "public")));
+
+// =====================
+// ROUTES
+// =====================
+
 const authRoutes = require("./routes/auth");
 const membersRoutes = require("./routes/members");
 const attendanceRoutes = require("./routes/attendance");
@@ -13,19 +64,6 @@ const eventsRoutes = require("./routes/events");
 const donationsRoutes = require("./routes/donations");
 const announcementsRoutes = require("./routes/announcements");
 
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Middleware
-app.use(express.static("public"));
-app.use(cors({
-	origin: "*",
-	credentials: true
-}));
-app.use(express.json());
-
-
-// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/members", membersRoutes);
 app.use("/api/attendance", attendanceRoutes);
@@ -33,17 +71,53 @@ app.use("/api/events", eventsRoutes);
 app.use("/api/donations", donationsRoutes);
 app.use("/api/announcements", announcementsRoutes);
 
-// Run migrations then ensure admin user exists and start server
+// =====================
+// HANDLE FRONTEND ROUTES (IMPORTANT FOR LIVE)
+// =====================
+
+// If someone visits root "/", serve index.html
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// Catch-all for undefined routes
+app.use((req, res) => {
+    res.status(404).json({ message: "Route not found" });
+});
+
+// =====================
+// START SERVER
+// =====================
+
 (async () => {
-	try {
-		await require('./migrations/run_migrations');
-	} catch (e) {
-		console.error('Migrations failed, exiting.', e.message);
-		process.exit(1);
-	}
+    try {
+        await require("./migrations/run_migrations");
+    } catch (e) {
+        console.error("Migrations failed, exiting.", e.message);
+        process.exit(1);
+    }
 
-	const { createAdminIfNotExists } = require("./models/userModel");
-	await createAdminIfNotExists().catch(err => console.error(err));
+    const { createAdminIfNotExists } = require("./models/userModel");
+    await createAdminIfNotExists().catch(err => console.error(err));
 
-	app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+    // if port is specified but in use, find another
+    try {
+        PORT = await findFreePort(PORT);
+    } catch {
+        console.warn("Could not determine free port, using configured value.");
+    }
+
+    const server = app.listen(PORT, "0.0.0.0", () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+
+    server.on('error', (err) => {
+        if (err.code === 'EADDRINUSE') {
+            console.error(`Port ${PORT} is already in use. ` +
+                `Please kill the process occupying it or set PORT environment variable to another port.`);
+        } else {
+            console.error('Server error:', err);
+        }
+        process.exit(1);
+    });
 })();

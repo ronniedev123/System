@@ -13,6 +13,12 @@
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
 
+    // Normalize users.role for older schemas (e.g. ENUM without "normaluser")
+    await db.execute(`
+      ALTER TABLE users
+      MODIFY COLUMN role VARCHAR(50) NOT NULL DEFAULT 'user'
+    `);
+
     // members
     await db.execute(`
       CREATE TABLE IF NOT EXISTS members (
@@ -47,12 +53,27 @@
         donor_name VARCHAR(255) NOT NULL,
         amount DECIMAL(10,2) NOT NULL,
         donation_date DATETIME,
+        contribution_type VARCHAR(100) DEFAULT 'general',
         created_by INT,
         description TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
+
+    // Ensure contribution_type exists for older databases created before this column.
+    const [colRows] = await db.execute(
+      `SELECT COUNT(*) as count
+       FROM INFORMATION_SCHEMA.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE()
+         AND TABLE_NAME = 'donations'
+         AND COLUMN_NAME = 'contribution_type'`
+    );
+    if (!colRows[0].count) {
+      await db.execute(
+        `ALTER TABLE donations ADD COLUMN contribution_type VARCHAR(100) DEFAULT 'general' AFTER donation_date`
+      );
+    }
 
     // attendance
     await db.execute(`
