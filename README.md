@@ -30,10 +30,9 @@ Required env vars:
 - `BANK_PAYMENT_SUCCESS_URL` (optional explicit success return URL)
 - `BANK_PAYMENT_CANCEL_URL` (optional explicit cancel return URL)
 
-2. Install dependencies and start server
+2. Install dependencies and start server from the project root
 
 ```bash
-cd backend
 npm install
 npm run start    # server will automatically find a free port if 3000 is busy
 ```
@@ -62,7 +61,15 @@ Frontend
 - Start the backend server and open `http://localhost:<port>/` in a browser to access the app.
 
 Deploying From GitHub
-- The repo now includes a root `Dockerfile`, so services like Railway can deploy it directly from GitHub.
+- The repo is now deployment-ready from the root directory.
+- Important root deployment files:
+  - `package.json`
+  - `server.js`
+  - `Procfile`
+  - `railway.json`
+  - `Dockerfile`
+  - `.env.example`
+- The runtime still uses the app code in `backend/`, but deployment platforms can now detect and start the app from the repository root.
 - Recommended path:
   1. Push the repo to GitHub.
   2. In Railway, create a new project from the GitHub repo.
