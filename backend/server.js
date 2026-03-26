@@ -100,6 +100,13 @@ app.use("/api/weekly-programs", weeklyProgramsRoutes);
 app.use("/api/worship-songs", worshipSongsRoutes);
 app.use("/api/church-album", churchAlbumRoutes);
 app.use("/api/payments", paymentsRoutes);
+app.get("/api/health", (req, res) => {
+    res.json({
+        ok: true,
+        service: "church-management-system",
+        timestamp: new Date().toISOString()
+    });
+});
 
 // =====================
 // HANDLE FRONTEND ROUTES (IMPORTANT FOR LIVE)

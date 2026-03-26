@@ -12,7 +12,12 @@ async function readJsonSafely(res) {
     try {
         return JSON.parse(text);
     } catch (err) {
-        return { message: text };
+        const compactText = text.replace(/\s+/g, " ").trim();
+        return {
+            message: compactText,
+            rawText: text,
+            isHtmlResponse: /<html[\s>]/i.test(text)
+        };
     }
 }
 
@@ -41,7 +46,10 @@ if (loginForm) {
                 localStorage.setItem('name', data.name || (data.user && data.user.name));
                 window.location.href = 'dashboard.html';
             } else {
-                if (errorEl) errorEl.textContent = data.error || data.message || 'Login failed';
+                const deploymentHint = data.isHtmlResponse && res.status === 405
+                    ? 'Login API is not available on this deployed link. Deploy the Node server, not only the static site.'
+                    : '';
+                if (errorEl) errorEl.textContent = deploymentHint || data.error || data.message || 'Login failed';
             }
         } catch (err) {
             console.error(err);
