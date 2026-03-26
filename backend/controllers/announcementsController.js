@@ -1,15 +1,14 @@
 const db = require('../utils/db');
-const { sendEmail } = require('../utils/email');
 const { sendSMS } = require('../utils/sms');
 
 // Create announcement (admin only)
 exports.createAnnouncement = async (req, res) => {
     try {
-        const { title, message, sendEmailToMembers } = req.body;
+        const { title, message, sendSMSToMembers } = req.body;
         const createdBy = req.user.id;
         if (!title || !message) return res.status(400).json({ error: 'title and message required' });
-        if (sendEmailToMembers && req.user.role !== 'admin') {
-            return res.status(403).json({ error: 'Only admins can send announcement emails' });
+        if (sendSMSToMembers && req.user.role !== 'admin') {
+            return res.status(403).json({ error: 'Only admins can send announcement SMS' });
         }
 
         const [result] = await db.execute(
@@ -17,31 +16,27 @@ exports.createAnnouncement = async (req, res) => {
             [title, message, createdBy]
         );
 
-        const emailSummary = { attempted: !!sendEmailToMembers, sent: false, recipients: 0, error: null };
+        const smsSummary = { attempted: !!sendSMSToMembers, sent: false, recipients: 0, error: null };
 
-        // Optionally send emails to all members
-        if (sendEmailToMembers) {
-            const [members] = await db.execute('SELECT name, email FROM members WHERE email IS NOT NULL AND email != ""');
-            const emails = members.map(m => m.email).filter(Boolean);
-            emailSummary.recipients = emails.length;
+        // Optionally send SMS to all members
+        if (sendSMSToMembers) {
+            const [members] = await db.execute('SELECT name, phone FROM members WHERE phone IS NOT NULL AND phone != ""');
+            smsSummary.recipients = members.length;
 
-            if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-                emailSummary.error = 'EMAIL_USER/EMAIL_PASS not configured on server';
-            } else if (emails.length) {
-                const subject = `Announcement: ${title}`;
-                const body = message;
-                const sent = await sendEmail(emails, subject, body).catch(err => {
-                    console.error('email error', err);
-                    return false;
-                });
-                emailSummary.sent = !!sent;
-                if (!sent) emailSummary.error = 'Email transport failed. Check SMTP credentials/app password.';
+            if (members.length) {
+                let successCount = 0;
+                for (const member of members) {
+                    const ok = await sendSMS(member.phone, message).catch(() => false);
+                    if (ok) successCount += 1;
+                }
+                smsSummary.sent = successCount === members.length;
+                if (!smsSummary.sent) smsSummary.error = `Sent to ${successCount}/${members.length} members`;
             } else {
-                emailSummary.error = 'No members with email addresses found';
+                smsSummary.error = 'No members with phone numbers found';
             }
         }
 
-        res.status(201).json({ id: result.insertId, title, message, emailSummary });
+        res.status(201).json({ id: result.insertId, title, message, smsSummary });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

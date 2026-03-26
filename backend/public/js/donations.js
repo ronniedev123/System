@@ -27,7 +27,7 @@ async function fetchDonations(){
         total += amountNum;
         const tr = document.createElement("tr");
         const actions = (role === 'admin') ?
-            `<button onclick="editDonation(${d.id})">Edit</button> <button onclick="deleteDonation(${d.id})">Delete</button>` : '<span style="opacity:.7;">-</span>';
+            `<button class="small-btn btn-primary" onclick="editDonation(${d.id})">Edit</button> <button class="small-btn btn-danger" onclick="deleteDonation(${d.id})">Delete</button>` : '<span class="cell-muted">-</span>';
         tr.innerHTML = `<td>${d.id}</td><td>${d.user_name || d.donor_name || ''}</td><td>KSH ${amountNum.toLocaleString()}</td><td>${d.description || ''}</td><td>${d.date || ''}</td><td>${actions}</td>`;
         donationsTable.appendChild(tr);
     });

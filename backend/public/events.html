@@ -7,31 +7,62 @@
 <link rel="stylesheet" href="css/styles.css">
 <link rel="stylesheet" href="css/church-theme.css">
 <style>
-body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; }
-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
-th { background: #f2f2f2; }
-button { padding: 5px 10px; cursor: pointer; }
-#logoutBtn { float: right; background-color: #f44336; color: white; border: none; border-radius: 5px; }
+.events-stack {
+    display: grid;
+    gap: 22px;
+}
+
+.events-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    align-items: end;
+}
+
+.events-form button {
+    margin-bottom: 16px;
+}
 </style>
-</head>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f6ecf">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Church App">
+<link rel="apple-touch-icon" href="assets/icon-192.png"></head>
 <body class="church-theme">
-<button id="backBtn" onclick="window.location.href='dashboard.html'" style="float:left; background-color:#2196f3; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; margin-right:10px;">← Back</button>
-<button id="logoutBtn">Logout</button>
-<h1>Church Events</h1>
+<div class="page">
+    <div class="page-header">
+        <div>
+            <span class="page-kicker">Events</span>
+            <h1>Church Events</h1>
+            <p class="page-intro">Track upcoming gatherings and keep important ministry dates visible for the team.</p>
+        </div>
+        <div class="header-actions">
+            <button id="backBtn" class="btn btn-outline" onclick="window.location.href='dashboard.html'">&larr; Back</button>
+            <button id="logoutBtn" class="btn btn-danger">Logout</button>
+        </div>
+    </div>
 
-<div id="adminActions" style="display:none;">
-<form id="addEventForm">
-<input type="text" id="title" placeholder="Event Title" required />
-<input type="date" id="date" required />
-<button type="submit">Add Event</button>
-</form>
-</div>
+    <div class="events-stack">
+        <section id="adminActions" class="card" style="display:none;">
+            <h3>Add Event</h3>
+            <form id="addEventForm" class="events-form">
+                <input type="text" id="title" placeholder="Event Title" required>
+                <input type="date" id="date" required>
+                <button type="submit" class="btn btn-primary">Add Event</button>
+            </form>
+        </section>
 
-<table>
-<thead><tr><th>ID</th><th>Title</th><th>Date</th><th>Actions</th></tr></thead>
-<tbody id="eventsTable"></tbody>
-</table>
+        <section class="card">
+            <h3>Events List</h3>
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>ID</th><th>Title</th><th>Date</th><th>Actions</th></tr></thead>
+                    <tbody id="eventsTable"></tbody>
+                </table>
+            </div>
+        </section>
+    </div>
 
 <script>
 const token = localStorage.getItem('token');
@@ -53,7 +84,7 @@ async function loadEvents(){
         events.forEach(e=>{
             const tr=document.createElement('tr');
             tr.innerHTML=`<td>${e.id}</td><td>${e.title}</td><td>${e.date}</td>
-            <td>${role==='admin'? `<button onclick="deleteEvent(${e.id})">Delete</button>` : ''}</td>`;
+            <td>${role==='admin'? `<button class="small-btn btn-danger" onclick="deleteEvent(${e.id})">Delete</button>` : ''}</td>`;
             tbody.appendChild(tr);
         });
     }catch(err){ console.error(err); alert("Error fetching events"); }
@@ -83,5 +114,6 @@ async function deleteEvent(id){
 
 loadEvents();
 </script>
+<script src="js/pwa.js"></script>
 </body>
 </html>

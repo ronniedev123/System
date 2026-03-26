@@ -20,7 +20,7 @@ if (role === 'normaluser') {
 }
 
 if (role !== 'admin') {
-  document.getElementById('sendEmailOption')?.setAttribute('style', 'display:none;');
+  document.getElementById('sendSMSOption')?.setAttribute('style', 'display:none;');
 }
 
 async function loadAnnouncements(){
@@ -106,7 +106,7 @@ document.getElementById('sendSMSBtn')?.addEventListener('click', async () => {
   }
   
   try {
-    statusDiv.innerHTML = '<div style="color: #2196F3;">Sending...</div>';
+    statusDiv.innerHTML = '<div class="status-info">Sending...</div>';
     
     const res = await fetch('/api/announcements/sms/send', {
       method: 'POST',
@@ -136,14 +136,14 @@ document.getElementById('sendSMSBtn')?.addEventListener('click', async () => {
 document.getElementById('createBtn')?.addEventListener('click', async ()=>{
   const title = document.getElementById('title').value.trim();
   const message = document.getElementById('message').value.trim();
-  const sendEmail = document.getElementById('sendEmail').checked;
+  const sendSMS = document.getElementById('sendSMS').checked;
   const statusDiv = document.getElementById('createStatus');
   if(!title || !message) return alert('Title and message required');
-  statusDiv.innerHTML = '<div style="color: #2196F3;">Creating announcement...</div>';
+  statusDiv.innerHTML = '<div class="status-info">Creating announcement...</div>';
   const res = await fetch('/api/announcements', {
     method:'POST',
     headers: { 'Content-Type':'application/json', Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ title, message, sendEmailToMembers: sendEmail })
+    body: JSON.stringify({ title, message, sendSMSToMembers: sendSMS })
   });
   const data = await res.json().catch(() => ({}));
   if(!res.ok) {
@@ -152,18 +152,18 @@ document.getElementById('createBtn')?.addEventListener('click', async ()=>{
   }
 
   let statusMsg = '✓ Announcement created successfully';
-  if (data.emailSummary?.attempted) {
-    if (data.emailSummary.sent) {
-      statusMsg += ` and email sent to ${data.emailSummary.recipients} member(s)`;
+  if (data.smsSummary?.attempted) {
+    if (data.smsSummary.sent) {
+      statusMsg += ` and SMS sent to ${data.smsSummary.recipients} member(s)`;
     } else {
-      statusMsg += `. Email was not sent: ${data.emailSummary.error || 'unknown error'}`;
+      statusMsg += `. SMS sending status: ${data.smsSummary.error || 'unknown error'}`;
     }
   }
   statusDiv.innerHTML = `<div class="success">${statusMsg}</div>`;
 
   document.getElementById('title').value='';
   document.getElementById('message').value='';
-  document.getElementById('sendEmail').checked=false;
+  document.getElementById('sendSMS').checked=false;
   loadAnnouncements();
 });
 

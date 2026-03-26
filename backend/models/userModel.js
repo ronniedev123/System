@@ -7,21 +7,21 @@ const bcrypt = require("bcryptjs");
 // -----------------------------
 const createAdminIfNotExists = async () => {
     try {
-        const email = "admin@church.com";
+        const phone = "admin@church.com";
         const password = "admin123";
         const role = "admin";
 
-        const [rows] = await db.execute("SELECT * FROM users WHERE email = ?", [email]);
+        const [rows] = await db.execute("SELECT * FROM users WHERE role = 'admin' LIMIT 1");
 
         if (rows.length === 0) {
-        const hash = await bcrypt.hash(password, 10);
-        await db.execute(
-            "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)",
-            ["Admin", email, hash, role]
-        );
-        console.log("Admin user created: admin@church.com / admin123");
+            const hash = await bcrypt.hash(password, 10);
+            await db.execute(
+                "INSERT INTO users (name, phone, password, role, is_approved, is_blocked) VALUES (?, ?, ?, ?, ?, ?)",
+                ["Admin", phone, hash, role, 1, 0]
+            );
+            console.log("Admin user created: admin@church.com / admin123");
         } else {
-        console.log("Admin user already exists");
+            console.log("Admin user already exists");
         }
     } catch (err) {
         console.error("Error creating admin:", err);
@@ -29,27 +29,27 @@ const createAdminIfNotExists = async () => {
 };
 
 // -----------------------------
-// Get User by Email
+// Get User by Phone
 // -----------------------------
-const getUserByEmail = async (email) => {
-  const [rows] = await db.execute("SELECT * FROM users WHERE email = ?", [email]);
-  return rows[0]; // returns undefined if not found
+const getUserByPhone = async (phone) => {
+    const [rows] = await db.execute("SELECT * FROM users WHERE phone = ?", [phone]);
+    return rows[0];
 };
 
 // -----------------------------
 // Create New User
 // -----------------------------
-const createUser = async ({ name, email, password, role = "user" }) => {
+const createUser = async ({ name, phone, password, role = "user" }) => {
     const hash = await bcrypt.hash(password, 10);
     const [result] = await db.execute(
-        "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)",
-        [name, email, hash, role]
+        "INSERT INTO users (name, phone, password, role, is_approved, is_blocked) VALUES (?, ?, ?, ?, ?, ?)",
+        [name, phone, hash, role, 1, 0]
     );
-    return result.insertId; // returns the new user ID
+    return result.insertId;
 };
 
 module.exports = {
     createAdminIfNotExists,
-    getUserByEmail,
+    getUserByPhone,
     createUser,
 };

@@ -8,6 +8,7 @@ router.post('/', authMiddleware, attendanceController.markAttendance);
 
 router.get('/trends', authMiddleware, attendanceController.getAttendanceTrends);
 router.get('/', authMiddleware, attendanceController.getAttendanceRecords);
+router.get('/my-report', authMiddleware, attendanceController.getMyAttendanceReport);
 // Reporting routes
 router.get('/report/month', authMiddleware, attendanceController.getMonthlyReport);
 router.get('/report/year', authMiddleware, attendanceController.getYearlyReport);

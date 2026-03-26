@@ -43,7 +43,9 @@ exports.addDonation = async (req, res) => {
             donation_date,
             contribution_type: contributionType,
             createdBy: req.user.id,
-            description
+            description,
+            payment_method: "manual",
+            payment_reference: null
         });
         res.json({ message: "Contribution added", donation });
     } catch (err) {
@@ -70,7 +72,7 @@ exports.updateDonation = async (req, res) => {
     try {
         if (!req.user || req.user.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
         const id = req.params.id;
-        const { amount, date, description, donor_name, contributionType } = req.body;
+        const { amount, date, description, donor_name, contributionType, payment_method, payment_reference } = req.body;
         // Fetch existing
         const existing = await donationsModel.getById(id);
         if (!existing) return res.status(404).json({ error: 'Donation not found' });
@@ -80,6 +82,8 @@ exports.updateDonation = async (req, res) => {
         const descriptionFinal = description === undefined ? existing.description : description;
         const amountFinal = amount === undefined ? existing.amount : amount;
         const typeFinal = contributionType === undefined ? existing.contribution_type : contributionType;
+        const paymentMethodFinal = payment_method === undefined ? existing.payment_method : payment_method;
+        const paymentReferenceFinal = payment_reference === undefined ? existing.payment_reference : payment_reference;
         if (!ALLOWED_TYPES.has(typeFinal)) {
             return res.status(400).json({ error: 'Invalid contributionType' });
         }
@@ -89,7 +93,9 @@ exports.updateDonation = async (req, res) => {
             amount: amountFinal,
             donation_date: donationDateFinal,
             contribution_type: typeFinal,
-            description: descriptionFinal
+            description: descriptionFinal,
+            payment_method: paymentMethodFinal,
+            payment_reference: paymentReferenceFinal
         });
         if (affected > 0) return res.json({ message: 'Contribution updated' });
         res.status(500).json({ error: 'Update failed' });

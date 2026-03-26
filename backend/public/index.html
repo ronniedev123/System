@@ -4,117 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ministry of Repentance and Holiness - Umoja Main Altar</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --gold: #d4a017;
-            --deep-blue: #0f1f3d;
-            --deep-blue-2: #172b57;
-            --paper: #fbf8ef;
-            --ink: #1d2430;
-        }
+    <link rel="stylesheet" href="css/auth.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f6ecf">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Church App">
+<link rel="apple-touch-icon" href="assets/icon-192.png"></head>
+<body class="auth-page">
+    <main class="auth-shell auth-shell-single">
+        <section class="auth-panel welcome-panel">
+            <div class="top">
+                <div class="cross">✝</div>
+                <h1>Ministry of Repentance and Holiness</h1>
+                <p class="auth-subtitle">
+                    We are a ministry committed to calling the nations to repentance, righteousness, and holiness, preparing the Church for the glorious coming of the Messiah.
+                </p>
+            </div>
 
-        * { box-sizing: border-box; }
+            <ul class="auth-list">
+                <li>
+                    <strong>Admins</strong>
+                    Track attendance, members, and contributions with clearer structure.
+                </li>
+                <li>
+                    <strong>Users</strong>
+                    Stay aligned on programs, announcements, and events.
+                </li>
+                <li>
+                    <strong>For Members</strong>
+                    Access giving, weekly programs, and personal attendance reports more easily.
+                </li>
+            </ul>
 
-        body {
-            margin: 0;
-            min-height: 100vh;
-            font-family: "Source Sans 3", sans-serif;
-            color: var(--paper);
-            background:
-                radial-gradient(circle at 15% 20%, rgba(212,160,23,0.24), transparent 35%),
-                radial-gradient(circle at 85% 80%, rgba(212,160,23,0.18), transparent 35%),
-                linear-gradient(135deg, var(--deep-blue), var(--deep-blue-2));
-            display: grid;
-            place-items: center;
-            padding: 24px;
-        }
-
-        .intro-card {
-            width: min(860px, 100%);
-            border: 1px solid rgba(212, 160, 23, 0.45);
-            border-radius: 18px;
-            background: rgba(6, 17, 38, 0.72);
-            backdrop-filter: blur(4px);
-            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.32);
-            padding: 44px 28px;
-            text-align: center;
-        }
-
-        .cross {
-            font-size: 42px;
-            color: var(--gold);
-            margin-bottom: 8px;
-        }
-
-        h1 {
-            margin: 0;
-            font-family: "Cinzel", serif;
-            font-size: clamp(1.5rem, 2.7vw, 2.3rem);
-            line-height: 1.35;
-            letter-spacing: 0.3px;
-        }
-
-        .subtitle {
-            margin: 16px auto 30px;
-            max-width: 620px;
-            color: rgba(251, 248, 239, 0.9);
-            font-size: 1.06rem;
-        }
-
-        .actions {
-            display: flex;
-            gap: 14px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            min-width: 180px;
-            padding: 12px 18px;
-            border-radius: 10px;
-            text-decoration: none;
-            font-weight: 700;
-            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
-        }
-
-        .btn-login {
-            background: var(--gold);
-            color: #1f1d15;
-            box-shadow: 0 8px 18px rgba(212, 160, 23, 0.33);
-        }
-
-        .btn-login:hover {
-            transform: translateY(-2px);
-            background: #e5b12f;
-        }
-
-        .btn-register {
-            background: transparent;
-            color: var(--paper);
-            border: 1px solid rgba(251, 248, 239, 0.55);
-        }
-
-        .btn-register:hover {
-            transform: translateY(-2px);
-            background: rgba(251, 248, 239, 0.09);
-        }
-    </style>
-</head>
-<body>
-    <section class="intro-card">
-        <div class="cross">✝</div>
-        <h1>Ministry of Repentance and Holiness<br>Umoja Main Altar</h1>
-        <p class="subtitle">
-            Welcome to your church management system. Please choose an option below to continue.
-        </p>
-
-        <div class="actions">
-            <a class="btn btn-login" href="login.html">Login</a>
-            <a class="btn btn-register" href="register.html">Register</a>
-        </div>
-    </section>
+            <div class="auth-actions">
+                <a class="auth-button" href="login.html">Login</a>
+                <a class="auth-button secondary" href="register.html">Register</a>
+            </div>
+        </section>
+    </main>
+<script src="js/pwa.js"></script>
 </body>
 </html>

@@ -1,40 +1,54 @@
 const token = localStorage.getItem("token");
 let memberChart = null;
 let trendChart = null;
+let authPayload = null;
+let memberId = null;
+let memberName = null;
 
 if (!token) {
-    window.location.href = 'index.html';
+    window.location.href = "index.html";
 }
 
 try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    if (payload.role === 'normaluser') {
-        window.location.href = 'dashboard.html';
-    }
+    authPayload = JSON.parse(atob(token.split(".")[1]));
 } catch (err) {
-    localStorage.removeItem('token');
-    window.location.href = 'index.html';
+    localStorage.removeItem("token");
+    window.location.href = "index.html";
 }
 
 const urlParams = new URLSearchParams(window.location.search);
-const memberId = urlParams.get('id');
-const memberName = urlParams.get('name');
+memberId = urlParams.get("id");
+memberName = urlParams.get("name");
+const returnDepartment = String(urlParams.get("department") || "All Members").trim() || "All Members";
 
-if (!memberId) {
-    alert('No member selected');
-    window.location.href = 'members.html';
+const isNormalUser = authPayload && authPayload.role === "normaluser";
+
+function membersPageUrl() {
+    return `members.html?department=${encodeURIComponent(returnDepartment)}`;
 }
 
-document.getElementById('memberName').textContent = memberName || `Member #${memberId}`;
+function setBackButton() {
+    const backBtn = document.getElementById("backBtn");
+    if (!backBtn) return;
+
+    if (isNormalUser) {
+        backBtn.textContent = "← Back to Dashboard";
+        backBtn.onclick = () => { window.location.href = "dashboard.html"; };
+        return;
+    }
+
+    backBtn.textContent = "← Back to Members";
+    backBtn.onclick = () => { window.location.href = membersPageUrl(); };
+}
 
 function pad2(n) {
-    return String(n).padStart(2, '0');
+    return String(n).padStart(2, "0");
 }
 
 function dateKeyFromValue(dtValue) {
     if (!dtValue) return null;
     const raw = String(dtValue);
-    const datePart = raw.includes('T') ? raw.split('T')[0] : raw.split(' ')[0];
+    const datePart = raw.includes("T") ? raw.split("T")[0] : raw.split(" ")[0];
     if (/^\d{4}-\d{2}-\d{2}$/.test(datePart)) return datePart;
     const parsed = new Date(raw);
     if (Number.isNaN(parsed.getTime())) return null;
@@ -42,7 +56,7 @@ function dateKeyFromValue(dtValue) {
 }
 
 function monthLabel(year, monthIndex) {
-    return new Date(year, monthIndex, 1).toLocaleString('default', { month: 'short', year: '2-digit' });
+    return new Date(year, monthIndex, 1).toLocaleString("default", { month: "short", year: "2-digit" });
 }
 
 function getSundaysInMonth(year, monthIndex) {
@@ -59,7 +73,7 @@ function getSundaysInMonth(year, monthIndex) {
 }
 
 function setDefaultPeriod() {
-    const periodSelect = document.getElementById('periodSelect');
+    const periodSelect = document.getElementById("periodSelect");
     const currentMonth = pad2(new Date().getMonth() + 1);
     periodSelect.value = currentMonth;
 }
@@ -77,22 +91,28 @@ function buildMonthlyData(attendanceDates, year) {
             present,
             total: sundays.length,
             absent: Math.max(sundays.length - present, 0),
-            percentage: sundays.length ? Math.round((present / sundays.length) * 100) : 0
+            percentage: sundays.length ? Math.round((present / sundays.length) * 100) : 0,
         };
     }
     return monthlyData;
 }
 
 async function loadMemberAttendanceGraph() {
-    const period = document.getElementById('periodSelect').value;
+    if (!memberId) {
+        alert("No member selected");
+        window.location.href = isNormalUser ? "dashboard.html" : membersPageUrl();
+        return;
+    }
+
+    const period = document.getElementById("periodSelect").value;
     const selectedYear = new Date().getFullYear();
 
     try {
         const res = await fetch(`/api/attendance?memberId=${memberId}`, {
-            headers: { "Authorization": `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` },
         });
 
-        if (!res.ok) throw new Error('Failed to load attendance');
+        if (!res.ok) throw new Error("Failed to load attendance");
         const records = await res.json();
 
         const attendanceDates = new Set();
@@ -105,7 +125,7 @@ async function loadMemberAttendanceGraph() {
         const monthlyData = buildMonthlyData(attendanceDates, selectedYear);
         const orderedMonthKeys = Object.keys(monthlyData).sort();
         const monthlyLabels = orderedMonthKeys.map((k) => {
-            const [y, m] = k.split('-');
+            const [y, m] = k.split("-");
             return monthLabel(parseInt(y, 10), parseInt(m, 10) - 1);
         });
         const monthlyPercentages = orderedMonthKeys.map((k) => monthlyData[k].percentage);
@@ -115,43 +135,43 @@ async function loadMemberAttendanceGraph() {
 
         let chartLabels = [];
         let chartValues = [];
-        let chartTitle = '';
+        let chartTitle = "";
 
-        if (period === 'year') {
+        if (period === "year") {
             chartLabels = monthlyLabels;
             chartValues = monthlyPercentages;
-            chartTitle = 'Whole Year Average Trend (%)';
+            chartTitle = "Whole Year Average Trend (%)";
         } else {
             const monthIndex = parseInt(period, 10) - 1;
             const sundays = getSundaysInMonth(selectedYear, monthIndex);
-            chartLabels = sundays.map((d) => d.toLocaleDateString('default', {
-                weekday: 'short', month: 'short', day: 'numeric'
+            chartLabels = sundays.map((d) => d.toLocaleDateString("default", {
+                weekday: "short", month: "short", day: "numeric",
             }));
             chartValues = sundays.map((d) => {
                 const key = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
                 return attendanceDates.has(key) ? 100 : 0;
             });
-            chartTitle = `${new Date(selectedYear, monthIndex, 1).toLocaleString('default', { month: 'long' })} Sunday Attendance`;
+            chartTitle = `${new Date(selectedYear, monthIndex, 1).toLocaleString("default", { month: "long" })} Sunday Attendance`;
         }
 
-        const ctx1 = document.getElementById('memberAttendanceChart')?.getContext('2d');
+        const ctx1 = document.getElementById("memberAttendanceChart")?.getContext("2d");
         if (ctx1) {
             if (memberChart) memberChart.destroy();
             memberChart = new Chart(ctx1, {
-                type: 'line',
+                type: "line",
                 data: {
                     labels: chartLabels,
                     datasets: [{
                         label: chartTitle,
                         data: chartValues,
-                        borderColor: '#4CAF50',
-                        backgroundColor: 'rgba(76, 175, 80, 0.15)',
-                        pointBackgroundColor: chartValues.map((v) => v >= 50 ? '#4CAF50' : '#f44336'),
+                        borderColor: "#4CAF50",
+                        backgroundColor: "rgba(76, 175, 80, 0.15)",
+                        pointBackgroundColor: chartValues.map((v) => v >= 50 ? "#4CAF50" : "#f44336"),
                         pointRadius: 4,
                         borderWidth: 2,
                         tension: 0.2,
-                        fill: true
-                    }]
+                        fill: true,
+                    }],
                 },
                 options: {
                     responsive: true,
@@ -160,44 +180,44 @@ async function loadMemberAttendanceGraph() {
                             beginAtZero: true,
                             max: 100,
                             ticks: {
-                                callback: (v) => `${v}%`
-                            }
-                        }
+                                callback: (v) => `${v}%`,
+                            },
+                        },
                     },
                     plugins: {
-                        legend: { display: true }
-                    }
-                }
+                        legend: { display: true },
+                    },
+                },
             });
         }
 
-        const ctx2 = document.getElementById('memberTrendChart')?.getContext('2d');
+        const ctx2 = document.getElementById("memberTrendChart")?.getContext("2d");
         if (ctx2) {
             if (trendChart) trendChart.destroy();
             trendChart = new Chart(ctx2, {
-                type: 'line',
+                type: "line",
                 data: {
                     labels: monthlyLabels,
                     datasets: [
                         {
-                            label: 'Monthly Attendance %',
+                            label: "Monthly Attendance %",
                             data: monthlyPercentages,
-                            borderColor: '#2196F3',
-                            backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                            borderColor: "#2196F3",
+                            backgroundColor: "rgba(33, 150, 243, 0.1)",
                             tension: 0.3,
                             borderWidth: 2,
-                            fill: true
+                            fill: true,
                         },
                         {
-                            label: 'Whole Year Average %',
+                            label: "Whole Year Average %",
                             data: monthlyLabels.map(() => yearAverage),
-                            borderColor: '#ff9800',
+                            borderColor: "#ff9800",
                             borderDash: [6, 6],
                             pointRadius: 0,
                             borderWidth: 2,
-                            fill: false
-                        }
-                    ]
+                            fill: false,
+                        },
+                    ],
                 },
                 options: {
                     responsive: true,
@@ -205,78 +225,83 @@ async function loadMemberAttendanceGraph() {
                         y: {
                             beginAtZero: true,
                             max: 100,
-                            ticks: { callback: (v) => `${v}%` }
-                        }
+                            ticks: { callback: (v) => `${v}%` },
+                        },
                     },
                     plugins: {
-                        legend: { display: true }
-                    }
-                }
+                        legend: { display: true },
+                    },
+                },
             });
         }
 
-        const tbody = document.getElementById('summaryTableBody');
-        tbody.innerHTML = '';
+        const tbody = document.getElementById("summaryTableBody");
+        tbody.innerHTML = "";
 
-        if (period === 'year') {
+        if (period === "year") {
             orderedMonthKeys.forEach((k) => {
-                const [yearStr, monthStr] = k.split('-');
+                const [yearStr, monthStr] = k.split("-");
                 const info = monthlyData[k];
                 const monthName = new Date(parseInt(yearStr, 10), parseInt(monthStr, 10) - 1)
-                    .toLocaleString('default', { month: 'long', year: 'numeric' });
+                    .toLocaleString("default", { month: "long", year: "numeric" });
 
-                const tr = document.createElement('tr');
+                const tr = document.createElement("tr");
                 tr.innerHTML = `
-                    <td style="border: 1px solid #ddd; padding: 10px;">${monthName}</td>
-                    <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">${info.total}</td>
-                    <td style="border: 1px solid #ddd; padding: 10px; text-align: center; color: #4CAF50; font-weight: bold;">${info.present}</td>
-                    <td style="border: 1px solid #ddd; padding: 10px; text-align: center; color: #f44336; font-weight: bold;">${info.absent}</td>
-                    <td style="border: 1px solid #ddd; padding: 10px; text-align: center; font-weight: bold;">${info.percentage}%</td>
+                    <td>${monthName}</td>
+                    <td class="cell-center">${info.total}</td>
+                    <td class="cell-center summary-positive">${info.present}</td>
+                    <td class="cell-center summary-negative">${info.absent}</td>
+                    <td class="cell-center cell-strong">${info.percentage}%</td>
                 `;
                 tbody.appendChild(tr);
             });
 
-            const avgRow = document.createElement('tr');
+            const avgRow = document.createElement("tr");
             avgRow.innerHTML = `
-                <td style="border: 1px solid #ddd; padding: 10px; font-weight: bold;">Whole Year Average</td>
-                <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">-</td>
-                <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">-</td>
-                <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">-</td>
-                <td style="border: 1px solid #ddd; padding: 10px; text-align: center; font-weight: bold; color: #ff9800;">${yearAverage}%</td>
+                <td class="cell-strong">Whole Year Average</td>
+                <td class="cell-center">-</td>
+                <td class="cell-center">-</td>
+                <td class="cell-center">-</td>
+                <td class="cell-center summary-warning">${yearAverage}%</td>
             `;
             tbody.appendChild(avgRow);
         } else {
             const key = `${selectedYear}-${period}`;
             const info = monthlyData[key];
             const monthName = new Date(selectedYear, parseInt(period, 10) - 1)
-                .toLocaleString('default', { month: 'long', year: 'numeric' });
+                .toLocaleString("default", { month: "long", year: "numeric" });
 
-            const tr = document.createElement('tr');
+            const tr = document.createElement("tr");
             tr.innerHTML = `
-                <td style="border: 1px solid #ddd; padding: 10px;">${monthName}</td>
-                <td style="border: 1px solid #ddd; padding: 10px; text-align: center;">${info.total}</td>
-                <td style="border: 1px solid #ddd; padding: 10px; text-align: center; color: #4CAF50; font-weight: bold;">${info.present}</td>
-                <td style="border: 1px solid #ddd; padding: 10px; text-align: center; color: #f44336; font-weight: bold;">${info.absent}</td>
-                <td style="border: 1px solid #ddd; padding: 10px; text-align: center; font-weight: bold;">${info.percentage}%</td>
+                <td>${monthName}</td>
+                <td class="cell-center">${info.total}</td>
+                <td class="cell-center summary-positive">${info.present}</td>
+                <td class="cell-center summary-negative">${info.absent}</td>
+                <td class="cell-center cell-strong">${info.percentage}%</td>
             `;
             tbody.appendChild(tr);
         }
     } catch (err) {
         console.error(err);
-        alert('Failed to load attendance data');
+        alert("Failed to load attendance data");
     }
 }
 
 async function downloadMemberReport() {
-    const period = document.getElementById('periodSelect').value;
+    if (!memberId) {
+        alert("No member selected");
+        return;
+    }
+
+    const period = document.getElementById("periodSelect").value;
     const selectedYear = new Date().getFullYear();
 
     try {
         const res = await fetch(`/api/attendance?memberId=${memberId}`, {
-            headers: { "Authorization": `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` },
         });
 
-        if (!res.ok) throw new Error('Failed to load attendance');
+        if (!res.ok) throw new Error("Failed to load attendance");
         const records = await res.json();
 
         const attendanceDates = new Set();
@@ -286,21 +311,21 @@ async function downloadMemberReport() {
             if (key) attendanceDates.add(key);
         });
 
-        let csv = 'Member Attendance Report\r\n';
+        let csv = "Member Attendance Report\r\n";
         csv += `Member: ${memberName}\r\n`;
         csv += `Generated: ${new Date().toLocaleString()}\r\n`;
         csv += `Year: ${selectedYear}\r\n`;
 
         let targetMonths = [];
-        if (period === 'year') {
+        if (period === "year") {
             targetMonths = [...Array(12).keys()];
-            csv += 'Period: Whole Year Average\r\n\r\n';
+            csv += "Period: Whole Year Average\r\n\r\n";
         } else {
             targetMonths = [parseInt(period, 10) - 1];
-            csv += `Period: ${new Date(selectedYear, parseInt(period, 10) - 1).toLocaleString('default', { month: 'long' })}\r\n\r\n`;
+            csv += `Period: ${new Date(selectedYear, parseInt(period, 10) - 1).toLocaleString("default", { month: "long" })}\r\n\r\n`;
         }
 
-        csv += 'Sunday,Status\r\n';
+        csv += "Sunday,Status\r\n";
         let totalSundays = 0;
         let totalPresent = 0;
 
@@ -311,25 +336,62 @@ async function downloadMemberReport() {
                 const isPresent = attendanceDates.has(key);
                 totalSundays++;
                 if (isPresent) totalPresent++;
-                csv += `${d.toLocaleDateString()},${isPresent ? 'Present' : 'Absent'}\r\n`;
+                csv += `${d.toLocaleDateString()},${isPresent ? "Present" : "Absent"}\r\n`;
             });
         });
 
         const average = totalSundays ? Math.round((totalPresent / totalSundays) * 100) : 0;
         csv += `\r\nAverage Attendance,${average}%\r\n`;
 
-        const blob = new Blob([csv], { type: 'text/csv' });
+        const blob = new Blob([csv], { type: "text/csv" });
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
-        a.download = `attendance_${memberId}_${new Date().toISOString().split('T')[0]}.csv`;
+        a.download = `attendance_${memberId}_${new Date().toISOString().split("T")[0]}.csv`;
         a.click();
         window.URL.revokeObjectURL(url);
     } catch (err) {
         console.error(err);
-        alert('Failed to download report');
+        alert("Failed to download report");
     }
 }
 
-setDefaultPeriod();
-loadMemberAttendanceGraph();
+async function resolveNormalUserMember() {
+    if (!isNormalUser) return;
+    try {
+        const res = await fetch("/api/attendance/my-report", {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to load your report");
+        if (!Array.isArray(data.memberIds) || !data.memberIds.length) {
+            alert(data.message || "No attendance profile found for your account name.");
+            window.location.href = "dashboard.html";
+            return;
+        }
+
+        memberId = String(data.memberIds[0]);
+        memberName = data.accountName || authPayload.name || `Member #${memberId}`;
+    } catch (err) {
+        console.error(err);
+        alert("Failed to load your attendance profile.");
+        window.location.href = "dashboard.html";
+    }
+}
+
+async function init() {
+    setBackButton();
+
+    if (!isNormalUser && !memberId) {
+        alert("No member selected");
+        window.location.href = membersPageUrl();
+        return;
+    }
+
+    await resolveNormalUserMember();
+    document.getElementById("memberName").textContent = memberName || `Member #${memberId}`;
+    setDefaultPeriod();
+    loadMemberAttendanceGraph();
+}
+
+init();

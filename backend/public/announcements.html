@@ -7,50 +7,95 @@
 <link rel="stylesheet" href="css/styles.css">
 <link rel="stylesheet" href="css/church-theme.css">
 <style>
-    .section { border: 1px solid #ddd; padding: 20px; margin: 20px 0; border-radius: 8px; }
-    .admin-section { background-color: #fff3cd; border-color: #ffc107; }
-    input, textarea, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-    button { background-color: #2196F3; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px; }
-    button:hover { background-color: #0b7dda; }
-    .error { color: #f44336; }
-    .success { color: #4CAF50; }
+.announcement-shell {
+    display: grid;
+    gap: 22px;
+}
+
+.announcement-links {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 22px;
+}
+
+.announcement-links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+    font-weight: 700;
+}
+
+#list {
+    padding: 0;
+}
+
+#list li strong {
+    display: block;
+    margin-bottom: 4px;
+}
 </style>
-</head>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f6ecf">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Church App">
+<link rel="apple-touch-icon" href="assets/icon-192.png"></head>
 <body class="church-theme">
-<nav style="margin-bottom:16px;">
-    <button onclick="window.location.href='dashboard.html'" style="background-color:#2196f3; color:white; border:none; padding:8px 16px; border-radius:4px; cursor:pointer; margin-right:10px;">← Back</button>
-    <a href="dashboard.html">Dashboard</a> | <a href="graphs.html">Graphs</a>
-    <span style="float:right"><a href="index.html">Logout</a></span>
-</nav>
-<h1>Announcements</h1>
+<div class="page">
+    <div class="page-header">
+        <div>
+            <span class="page-kicker">Communication</span>
+            <h1>Announcements</h1>
+            <p class="page-intro">Publish church-wide updates and, for admins, send focused SMS communication to members.</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-outline" onclick="window.location.href='dashboard.html'">&larr; Back</button>
+            <a class="btn btn-outline" href="graphs.html">Reports</a>
+            <button class="btn btn-danger" onclick="localStorage.removeItem('token'); window.location.href='index.html';">Logout</button>
+        </div>
+    </div>
 
-<!-- Admin SMS Section -->
-<div id="adminSMSSection" class="section admin-section" style="display: none;">
-    <h3>📱 Send SMS to Member (Admin Only)</h3>
-    <p style="color: #666; font-size: 14px;">Send announcement messages directly to members' phone numbers</p>
-    <label for="memberSelect" style="display: block; margin-bottom: 8px; font-weight: bold;">Select Member:</label>
-    <select id="memberSelect" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;"></select>
-    
-    <label for="smsMessage" style="display: block; margin-top: 15px; margin-bottom: 8px; font-weight: bold;">Message:</label>
-    <textarea id="smsMessage" placeholder="Type your message for SMS..." style="height: 100px;"></textarea>
-    
-    <div id="smsCharCount" style="font-size: 12px; color: #666; margin: 5px 0;">Characters: 0 / 160</div>
-    <button id="sendSMSBtn">Send SMS</button>
-    <div id="smsStatus"></div>
-</div>
+    <div class="announcement-links">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="graphs.html">Graphs</a>
+    </div>
 
-<!-- Create Announcement Section -->
-<div id="createBox" class="section">
-    <h3>📢 Create Announcement</h3>
-    <input id="title" placeholder="Title"><br>
-    <textarea id="message" placeholder="Message"></textarea><br>
-    <label id="sendEmailOption"><input type="checkbox" id="sendEmail"> Send email to members</label><br>
-    <button id="createBtn">Create</button>
-    <div id="createStatus"></div>
+    <div class="announcement-shell">
+        <div id="adminSMSSection" class="section admin-section" style="display: none;">
+            <h3>Send SMS to Member</h3>
+            <p class="muted">Choose a member with a phone number and send a short announcement message directly.</p>
+            <label for="memberSelect">Select Member</label>
+            <select id="memberSelect"></select>
+
+            <label for="smsMessage">Message</label>
+            <textarea id="smsMessage" placeholder="Type your message for SMS..."></textarea>
+
+            <div id="smsCharCount" class="muted">Characters: 0 / 160</div>
+            <button id="sendSMSBtn" class="btn btn-primary">Send SMS</button>
+            <div id="smsStatus"></div>
+        </div>
+
+        <div id="createBox" class="section">
+            <h3>Create Announcement</h3>
+            <input id="title" placeholder="Title">
+            <textarea id="message" placeholder="Message"></textarea>
+            <label id="sendSMSOption"><input type="checkbox" id="sendSMS" style="width:auto; min-height:auto; margin-right:8px; margin-bottom:0;"> Send SMS to all members</label>
+            <button id="createBtn" class="btn btn-secondary">Create</button>
+            <div id="createStatus"></div>
+        </div>
+
+        <section class="card">
+            <h3>Recent Announcements</h3>
+            <ul id="list" class="list-feed"></ul>
+        </section>
+    </div>
 </div>
-<hr>
-<h3>Recent Announcements</h3>
-<ul id="list"></ul>
 <script src="js/announcements.js"></script>
+<script src="js/pwa.js"></script>
 </body>
 </html>

@@ -59,6 +59,49 @@ exports.getAttendanceRecords = async (req, res) => {
     }
 };
 
+// Normal user self attendance report (matched by account name)
+exports.getMyAttendanceReport = async (req, res) => {
+    try {
+        if (!req.user || !req.user.name) {
+            return res.status(400).json({ error: 'Unable to resolve current user name' });
+        }
+
+        const userName = String(req.user.name).trim();
+        if (!userName) {
+            return res.status(400).json({ error: 'Invalid account name' });
+        }
+
+        // Find member profile(s) that match account name
+        const members = await memberModel.findByName(userName);
+        if (!members || !members.length) {
+            return res.json({
+                accountName: userName,
+                totalAttendance: 0,
+                records: [],
+                message: 'No member profile found for this account name'
+            });
+        }
+
+        const memberIds = members.map(m => m.id);
+        const allRecords = [];
+        for (const id of memberIds) {
+            const recs = await attendanceModel.getByMember(id);
+            allRecords.push(...recs.map(r => ({ ...r, member_name: members.find(m => m.id === id).name })));
+        }
+
+        allRecords.sort((a, b) => new Date(b.check_in) - new Date(a.check_in));
+
+        res.json({
+            accountName: userName,
+            memberIds,
+            totalAttendance: allRecords.length,
+            records: allRecords.slice(0, 100)
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
 function countSundaysBetween(start, end) {
     const s = new Date(start);
     const e = new Date(end);

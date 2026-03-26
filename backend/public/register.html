@@ -4,132 +4,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Ministry of Repentance and Holiness</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --gold: #d4a017;
-            --deep-blue: #0f1f3d;
-            --deep-blue-2: #172b57;
-            --paper: #fbf8ef;
-            --ink: #1d2430;
-        }
-
-        * { box-sizing: border-box; }
-
-        body {
-            margin: 0;
-            min-height: 100vh;
-            font-family: "Source Sans 3", sans-serif;
-            background:
-                radial-gradient(circle at 12% 18%, rgba(212,160,23,0.2), transparent 35%),
-                radial-gradient(circle at 83% 84%, rgba(212,160,23,0.16), transparent 35%),
-                linear-gradient(145deg, var(--deep-blue), var(--deep-blue-2));
-            color: var(--paper);
-            display: grid;
-            place-items: center;
-            padding: 24px;
-        }
-
-        .panel {
-            width: min(500px, 100%);
-            background: rgba(6, 17, 38, 0.75);
-            border: 1px solid rgba(212,160,23,0.45);
-            border-radius: 16px;
-            padding: 30px 24px;
-            box-shadow: 0 18px 40px rgba(0,0,0,0.32);
-        }
-
-        .top {
-            text-align: center;
-            margin-bottom: 14px;
-        }
-
-        .top h1 {
-            margin: 0;
-            font-family: "Cinzel", serif;
-            font-size: 1.35rem;
-            line-height: 1.35;
-        }
-
-        .cross {
-            color: var(--gold);
-            font-size: 34px;
-            margin-bottom: 6px;
-        }
-
-        form { display: grid; gap: 12px; }
-
-        input {
-            width: 100%;
-            border: 1px solid rgba(251,248,239,0.42);
-            border-radius: 9px;
-            padding: 11px;
-            background: rgba(251,248,239,0.97);
-            color: var(--ink);
-            font-size: 1rem;
-        }
-
-        button {
-            border: none;
-            border-radius: 10px;
-            padding: 12px;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 1rem;
-            background: var(--gold);
-            color: #1f1d15;
-        }
-
-        #regError {
-            min-height: 20px;
-            margin: 0;
-            color: #ffb7b7;
-            font-weight: 600;
-            text-align: center;
-        }
-
-        .links {
-            margin-top: 12px;
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .links a {
-            color: var(--paper);
-            text-decoration: none;
-            border-bottom: 1px dashed rgba(251,248,239,0.6);
-        }
-    </style>
-</head>
-<body>
-    <section class="panel">
-        <div class="top">
+    <link rel="stylesheet" href="css/auth.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f6ecf">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Church App">
+<link rel="apple-touch-icon" href="assets/icon-192.png"></head>
+<body class="auth-page">
+    <main class="auth-shell">
+        <section class="auth-hero">
+            <span class="auth-badge">Create Account</span>
             <div class="cross">✝</div>
-            <h1>Ministry of Repentance and Holiness<br>Umoja Main Altar</h1>
-        </div>
+            <h1 class="auth-title">Start with a clean account setup and join the ministry portal.</h1>
+            <p class="auth-subtitle">
+                Register once, then wait for approval if needed. The system will take you into the new lighter interface once your account is ready.
+            </p>
+            <ul class="auth-list">
+                <li>
+                    <strong>Member Access</strong>
+                    Normal users can reach giving, weekly programs, and their attendance report.
+                </li>
+                <li>
+                    <strong>Team Access</strong>
+                    Users can help with ministry workflows across the platform.
+                </li>
+                <li>
+                    <strong>Faster First Impression</strong>
+                    The updated styling keeps forms clearer and easier to complete.
+                </li>
+            </ul>
+        </section>
 
-        <form id="registerForm">
-            <input type="text" id="regName" placeholder="Full Name" required>
-            <input type="email" id="regEmail" placeholder="Email" required>
-            <input type="password" id="regPassword" placeholder="Password" required>
-            <select id="regRole" required>
-                <option value="user">User</option>
-                <option value="normaluser">Normal User</option>
-            </select>
-            <button type="submit">Register</button>
-            <p id="regError"></p>
-        </form>
+        <section class="auth-panel">
+            <div class="top">
+                <span class="auth-badge">Register</span>
+                <div class="cross">✝</div>
+                <h1>Create your account</h1>
+            </div>
 
-        <div class="links">
-            <a href="index.html">Back to Welcome</a>
-            <a href="login.html">Already have an account? Login</a>
-        </div>
-    </section>
+            <form id="registerForm">
+                <input type="text" id="regName" placeholder="Full Name" required>
+                <input type="tel" id="regPhone" placeholder="Phone Number" required>
+                <input type="password" id="regPassword" placeholder="Password" required>
+                <select id="regRole" required>
+                    <option value="normaluser">Normal User</option>
+                    <option value="user">User</option>
+                </select>
+                <button type="submit">Register</button>
+                <p id="regError"></p>
+            </form>
+
+            <div class="links">
+                <a href="index.html">Back to Welcome</a>
+                <a href="login.html">Already have an account? Login</a>
+            </div>
+        </section>
+    </main>
 
     <script src="js/main.js"></script>
+<script src="js/pwa.js"></script>
 </body>
 </html>

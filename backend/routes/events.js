@@ -1,4 +1,4 @@
-const { sendEmail } = require('../utils/email');
+const { sendSMS } = require('../utils/sms');
 const router = require('express').Router();
 const eventsController = require('../controllers/eventsController');
 const authMiddleware = require('../middlewares/authMiddleware');
@@ -10,15 +10,15 @@ router.post('/', authMiddleware, eventsController.addEvent);
 router.get('/', authMiddleware, eventsController.getEvents);
 
 router.post('/reminder', authMiddleware, async (req, res) => {
-    const { eventId, emails } = req.body;
+    const { eventId, phones } = req.body;
     try {
         const event = await eventsModel.getById(eventId);
         if(!event) return res.status(404).json({ message: "Event not found" });
 
-        for(const email of emails){
-            await sendEmail(email, `Reminder: ${event.title}`, `Event ${event.title} is on ${event.date}. ${event.description}`);
+        for(const phone of phones || []){
+            await sendSMS(phone, `Reminder: ${event.title}. Event is on ${event.date}. ${event.description || ''}`);
         }
-        res.json({ message: "Reminders sent successfully" });
+        res.json({ message: "SMS reminders sent successfully" });
     } catch(err) {
         res.status(500).json({ error: err.message });
     }

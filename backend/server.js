@@ -32,8 +32,8 @@ async function findFreePort(start) {
 // =====================
 
 // Parse JSON (and handle parse errors gracefully)
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 // middleware to convert JSON parse errors into JSON responses
 app.use((err, req, res, next) => {
@@ -50,6 +50,28 @@ app.use(cors({
     credentials: true
 }));
 
+// Keep HTML and service worker assets fresh during preview/deployment sharing.
+app.use((req, res, next) => {
+    const requestPath = req.path || "";
+    const shouldDisableCache =
+        requestPath.startsWith("/api/") ||
+        requestPath === "/" ||
+        requestPath.endsWith(".html") ||
+        requestPath.startsWith("/js/") ||
+        requestPath.startsWith("/css/") ||
+        requestPath === "/sw.js" ||
+        requestPath === "/manifest.webmanifest" ||
+        requestPath === "/js/pwa.js";
+
+    if (shouldDisableCache) {
+        res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Expires", "0");
+    }
+
+    next();
+});
+
 // Serve static frontend files
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -63,6 +85,10 @@ const attendanceRoutes = require("./routes/attendance");
 const eventsRoutes = require("./routes/events");
 const donationsRoutes = require("./routes/donations");
 const announcementsRoutes = require("./routes/announcements");
+const weeklyProgramsRoutes = require("./routes/weeklyPrograms");
+const worshipSongsRoutes = require("./routes/worshipSongs");
+const churchAlbumRoutes = require("./routes/churchAlbum");
+const paymentsRoutes = require("./routes/payments");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/members", membersRoutes);
@@ -70,6 +96,10 @@ app.use("/api/attendance", attendanceRoutes);
 app.use("/api/events", eventsRoutes);
 app.use("/api/donations", donationsRoutes);
 app.use("/api/announcements", announcementsRoutes);
+app.use("/api/weekly-programs", weeklyProgramsRoutes);
+app.use("/api/worship-songs", worshipSongsRoutes);
+app.use("/api/church-album", churchAlbumRoutes);
+app.use("/api/payments", paymentsRoutes);
 
 // =====================
 // HANDLE FRONTEND ROUTES (IMPORTANT FOR LIVE)

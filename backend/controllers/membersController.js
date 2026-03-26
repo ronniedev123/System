@@ -2,9 +2,9 @@ const Member = require("../models/memberModel");
 
 exports.createMember = async (req, res) => {
     try {
-        const { name, email, phone, address } = req.body;
+        const { name, gender, department, departments, phone, address, photo_url } = req.body;
         const created_by = req.user.id;
-        const insertId = await Member.createMember({ name, email, phone, address, created_by });
+        const insertId = await Member.createMember({ name, gender, department, departments, phone, address, photo_url, created_by });
         res.json({ message: "Member added", id: insertId });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -46,8 +46,8 @@ exports.updateMember = async (req, res) => {
         if (user.role !== 'admin' && member.created_by !== user.id) {
             return res.status(403).json({ message: 'Forbidden' });
         }
-        const { name, email, phone, address } = req.body;
-        const affected = await Member.updateById(id, { name, email, phone, address });
+        const { name, gender, department, departments, phone, address, photo_url } = req.body;
+        const affected = await Member.updateById(id, { name, gender, department, departments, phone, address, photo_url });
         if (affected > 0) return res.json({ message: 'Member updated' });
         res.status(500).json({ message: 'Update failed' });
     } catch (err) {

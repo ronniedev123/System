@@ -16,6 +16,21 @@ try {
     window.location.href = 'index.html';
 }
 
+let activeDepartment = "All Members";
+const MASTER_LABEL = "All Members";
+const UNASSIGNED_LABEL = "Unassigned";
+const DEFAULT_DEPARTMENTS = [
+    "Priesthood",
+    "Ushers",
+    "Translators",
+    "Technical Team",
+    "Worshippers",
+    "Security",
+    "Decorators",
+    "Kitchen",
+    "Sunday School Teachers",
+];
+
 function pad2(n) {
     return String(n).padStart(2, '0');
 }
@@ -28,6 +43,137 @@ function dateKeyFromValue(dtValue) {
     const parsed = new Date(raw);
     if (Number.isNaN(parsed.getTime())) return null;
     return `${parsed.getFullYear()}-${pad2(parsed.getMonth() + 1)}-${pad2(parsed.getDate())}`;
+}
+
+function parseDepartments(value) {
+    const normalizeDepartmentLabel = (item) => {
+        const label = String(item || '').trim();
+        if (!label) return '';
+        return label.toLowerCase() === 'worship' ? 'Worshippers' : label;
+    };
+
+    if (Array.isArray(value)) {
+        return [...new Set(value.map(normalizeDepartmentLabel).filter(Boolean))];
+    }
+
+    const raw = String(value || '').trim();
+    if (!raw) return [];
+
+    if (raw.startsWith('[')) {
+        try {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) {
+                return [...new Set(parsed.map(normalizeDepartmentLabel).filter(Boolean))];
+            }
+        } catch (err) {
+            // Fall back to comma-separated values below.
+        }
+    }
+
+    return [...new Set(raw.split(',').map(normalizeDepartmentLabel).filter(Boolean))];
+}
+
+function getMemberDepartments(member) {
+    return parseDepartments(member?.departments ?? member?.department);
+}
+
+function buildDepartmentList(members) {
+    const seen = new Set();
+    const ordered = [MASTER_LABEL];
+
+    const addDept = (dept) => {
+        const label = String(dept || '').trim();
+        if (!label || label === MASTER_LABEL || label === UNASSIGNED_LABEL) return;
+        if (!seen.has(label)) {
+            seen.add(label);
+            ordered.push(label);
+        }
+    };
+
+    DEFAULT_DEPARTMENTS.forEach(addDept);
+
+    let hasUnassigned = false;
+    (members || []).forEach((m) => {
+        const departments = getMemberDepartments(m);
+        if (!departments.length) {
+            hasUnassigned = true;
+        } else {
+            departments.forEach(addDept);
+        }
+    });
+
+    if (hasUnassigned) {
+        ordered.push(UNASSIGNED_LABEL);
+    }
+
+    return ordered;
+}
+
+function updateDepartmentSelect(members) {
+    const select = document.getElementById('departmentSelect');
+    if (!select) return;
+    const departments = buildDepartmentList(members);
+    if (!departments.includes(activeDepartment)) {
+        activeDepartment = MASTER_LABEL;
+    }
+    select.innerHTML = '';
+    departments.forEach((dept) => {
+        const opt = document.createElement('option');
+        opt.value = dept;
+        opt.textContent = dept === MASTER_LABEL ? 'All Members (Master List)' : dept;
+        if (dept === activeDepartment) opt.selected = true;
+        select.appendChild(opt);
+    });
+}
+
+function seedDepartmentSelectDefaults() {
+    updateDepartmentSelect([]);
+}
+
+function getFilteredMembers(members) {
+    if (activeDepartment === MASTER_LABEL) return members;
+    return (members || []).filter((m) => {
+        const departments = getMemberDepartments(m);
+        if (activeDepartment === UNASSIGNED_LABEL) {
+            return departments.length === 0;
+        }
+        return departments.includes(activeDepartment);
+    });
+}
+
+function updateDepartmentTable(members) {
+    const tbody = document.getElementById('departmentTableBody');
+    if (!tbody) return;
+    const counts = {};
+    (members || []).forEach((m) => {
+        const departments = getMemberDepartments(m);
+        if (!departments.length) {
+            counts[UNASSIGNED_LABEL] = (counts[UNASSIGNED_LABEL] || 0) + 1;
+            return;
+        }
+        departments.forEach((dept) => {
+            counts[dept] = (counts[dept] || 0) + 1;
+        });
+    });
+
+    const departments = buildDepartmentList(members).filter((d) => d !== MASTER_LABEL);
+    tbody.innerHTML = '';
+    departments.forEach((dept) => {
+        const tr = document.createElement('tr');
+        const isActive = dept === activeDepartment;
+        tr.innerHTML = `
+            <td class="${isActive ? 'cell-strong' : ''}">${dept}</td>
+            <td class="cell-center">${counts[dept] || 0}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    const totalRow = document.createElement('tr');
+    totalRow.innerHTML = `
+        <td class="cell-strong">Whole Church (Master)</td>
+        <td class="cell-center cell-strong">${(members || []).length}</td>
+    `;
+    tbody.appendChild(totalRow);
 }
 
 function setDefaultPeriod() {
@@ -47,6 +193,10 @@ async function loadAttendanceChart() {
         });
         if (!membersRes.ok) throw new Error('Failed to load members');
         const members = await membersRes.json();
+        updateDepartmentSelect(members);
+        updateDepartmentTable(members);
+        const filteredMembers = getFilteredMembers(members);
+        const memberIdSet = new Set(filteredMembers.map((m) => String(m.id)));
         
         // Fetch attendance records
         const attendanceRes = await fetch('/api/attendance', {
@@ -80,8 +230,10 @@ async function loadAttendanceChart() {
             const dt = r.check_in || r.date || r.created_at;
             const datePart = dateKeyFromValue(dt);
             if (!datePart) return;
+            const memberId = String(r.member_id || r.memberId);
+            if (!memberIdSet.has(memberId)) return;
             if (!attendanceByDate[datePart]) attendanceByDate[datePart] = [];
-            attendanceByDate[datePart].push(r.member_id || r.memberId);
+            attendanceByDate[datePart].push(memberId);
         });
         
         // Get all Sundays in the period
@@ -107,8 +259,8 @@ async function loadAttendanceChart() {
                     const dateStr = `${yyyy}-${mm}-${dd}`;
 
                     const attendanceCount = attendanceByDate[dateStr] ? attendanceByDate[dateStr].length : 0;
-                    const averagePercent = members.length > 0
-                        ? Math.round((attendanceCount / members.length) * 100)
+                    const averagePercent = filteredMembers.length > 0
+                        ? Math.round((attendanceCount / filteredMembers.length) * 100)
                         : 0;
 
                     sundayAttendance[dateStr] = {
@@ -265,12 +417,12 @@ async function loadAttendanceChart() {
             
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td style="border: 1px solid #ddd; padding: 12px;">${monthName}</td>
-                <td style="border: 1px solid #ddd; padding: 12px; text-align: center;">${members.length}</td>
-                <td style="border: 1px solid #ddd; padding: 12px; text-align: center;">${numSundays}</td>
-                <td style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold;">${averagePercent}%</td>
-                <td style="border: 1px solid #ddd; padding: 12px; text-align: center; color: #4CAF50; font-weight: bold;">${maxPercent}%</td>
-                <td style="border: 1px solid #ddd; padding: 12px; text-align: center; color: #f44336; font-weight: bold;">${minPercent}%</td>
+                <td>${monthName}</td>
+                <td class="cell-center">${filteredMembers.length}</td>
+                <td class="cell-center">${numSundays}</td>
+                <td class="cell-center cell-strong">${averagePercent}%</td>
+                <td class="cell-center summary-positive">${maxPercent}%</td>
+                <td class="cell-center summary-negative">${minPercent}%</td>
             `;
             tbody.appendChild(tr);
         });
@@ -278,12 +430,12 @@ async function loadAttendanceChart() {
         if (period === "year") {
             const avgRow = document.createElement('tr');
             avgRow.innerHTML = `
-                <td style="border: 1px solid #ddd; padding: 12px; font-weight: bold;">Whole Year Average</td>
-                <td style="border: 1px solid #ddd; padding: 12px; text-align: center;">-</td>
-                <td style="border: 1px solid #ddd; padding: 12px; text-align: center;">-</td>
-                <td style="border: 1px solid #ddd; padding: 12px; text-align: center; font-weight: bold; color:#ff9800;">${yearAverage}%</td>
-                <td style="border: 1px solid #ddd; padding: 12px; text-align: center;">-</td>
-                <td style="border: 1px solid #ddd; padding: 12px; text-align: center;">-</td>
+                <td class="cell-strong">Whole Year Average</td>
+                <td class="cell-center">-</td>
+                <td class="cell-center">-</td>
+                <td class="cell-center summary-warning">${yearAverage}%</td>
+                <td class="cell-center">-</td>
+                <td class="cell-center">-</td>
             `;
             tbody.appendChild(avgRow);
         }
@@ -310,19 +462,23 @@ async function downloadAllReport() {
             headers: { "Authorization": `Bearer ${token}` }
         });
         const members = await membersRes.json();
+        const filteredMembers = getFilteredMembers(members);
+        const memberIdSet = new Set(filteredMembers.map((m) => String(m.id)));
         
         const attendanceRes = await fetch('/api/attendance', {
             headers: { "Authorization": `Bearer ${token}` }
         });
         const records = await attendanceRes.json();
         
+        const deptLabel = activeDepartment === MASTER_LABEL ? 'All Members (Master List)' : activeDepartment;
         let csv = 'All Members Attendance Report\r\n';
         csv += `Generated: ${new Date().toLocaleString()}\r\n`;
         csv += `Period: Last ${months} month(s)\r\n\r\n`;
+        csv += `Department: ${deptLabel}\r\n\r\n`;
         csv += 'Member,Date,Status\r\n';
         
-        members.forEach(m => {
-            const memberRecords = records.filter(r => (r.member_id || r.memberId) == m.id);
+        filteredMembers.forEach(m => {
+            const memberRecords = records.filter(r => memberIdSet.has(String(r.member_id || r.memberId)) && (r.member_id || r.memberId) == m.id);
             if (memberRecords.length > 0) {
                 memberRecords.forEach(r => {
                     const date = new Date(r.check_in || r.date || r.created_at);
@@ -363,6 +519,8 @@ async function downloadAverageReport() {
             headers: { "Authorization": `Bearer ${token}` }
         });
         const members = await membersRes.json();
+        const filteredMembers = getFilteredMembers(members);
+        const memberIdSet = new Set(filteredMembers.map((m) => String(m.id)));
         
         const attendanceRes = await fetch('/api/attendance', {
             headers: { "Authorization": `Bearer ${token}` }
@@ -374,8 +532,10 @@ async function downloadAverageReport() {
         records.forEach(r => {
             const attendanceDate = new Date(r.check_in || r.date || r.created_at);
             const dateStr = attendanceDate.toISOString().split('T')[0];
+            const memberId = String(r.member_id || r.memberId);
+            if (!memberIdSet.has(memberId)) return;
             if (!attendanceByDate[dateStr]) attendanceByDate[dateStr] = [];
-            attendanceByDate[dateStr].push(r.member_id || r.memberId);
+            attendanceByDate[dateStr].push(memberId);
         });
         
         // Calculate summaries
@@ -383,7 +543,9 @@ async function downloadAverageReport() {
         let csv = 'Attendance Summary Report\r\n';
         csv += `Generated: ${new Date().toLocaleString()}\r\n`;
         csv += `Period: Last ${months} month(s)\r\n`;
-        csv += `Total Members: ${members.length}\r\n\r\n`;
+        const deptLabel = activeDepartment === MASTER_LABEL ? 'All Members (Master List)' : activeDepartment;
+        csv += `Department: ${deptLabel}\r\n`;
+        csv += `Total Members: ${filteredMembers.length}\r\n\r\n`;
         csv += 'Month,Sundays,Average Attendance %,Highest %,Lowest %\r\n';
         
         for (let i = 0; i < months; i++) {
@@ -403,7 +565,7 @@ async function downloadAverageReport() {
                     sundays++;
                     const dateStr = d.toISOString().split('T')[0];
                     const attendanceCount = attendanceByDate[dateStr] ? attendanceByDate[dateStr].length : 0;
-                    const percent = members.length > 0 ? Math.round((attendanceCount / members.length) * 100) : 0;
+                    const percent = filteredMembers.length > 0 ? Math.round((attendanceCount / filteredMembers.length) * 100) : 0;
                     sundayPercentages.push(percent);
                 }
             }
@@ -432,4 +594,12 @@ async function downloadAverageReport() {
 }
 
 setDefaultPeriod();
+seedDepartmentSelectDefaults();
+const departmentSelect = document.getElementById('departmentSelect');
+if (departmentSelect) {
+    departmentSelect.addEventListener('change', (e) => {
+        activeDepartment = e.target.value || MASTER_LABEL;
+        loadAttendanceChart();
+    });
+}
 loadAttendanceChart();

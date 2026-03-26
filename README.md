@@ -12,12 +12,23 @@ Setup
 Required env vars:
 - `DB_HOST` (default: localhost)
 - `DB_USER` (default: root)
-- `DB_PASSWORD` (default: Login@ronald2004)
-- `DB_NAME` (default: church_db)
+- `DB_PASSWORD`
+- `DB_NAME` (default: `church_db`)
 - `PORT` (optional, default 3000)
-- `JWT_SECRET` (recommended, default used if missing)
+- `JWT_SECRET` (recommended, a fallback default is used if missing)
 - `EMAIL_USER` (optional, for sending emails)
 - `EMAIL_PASS` (optional, for sending emails)
+- `APP_BASE_URL` (recommended for payment return URLs, e.g. `https://yourdomain.com`)
+- `MPESA_ENV` (`sandbox` or `production`)
+- `MPESA_CONSUMER_KEY` (for Daraja API)
+- `MPESA_CONSUMER_SECRET` (for Daraja API)
+- `MPESA_SHORTCODE` (paybill/till shortcode)
+- `MPESA_PASSKEY` (Daraja STK passkey)
+- `MPESA_CALLBACK_URL` (public callback URL for STK push responses)
+- `MPESA_TRANSACTION_TYPE` (optional, default: `CustomerPayBillOnline`)
+- `BANK_PAYMENT_REDIRECT_URL` (hosted bank/card checkout entry URL)
+- `BANK_PAYMENT_SUCCESS_URL` (optional explicit success return URL)
+- `BANK_PAYMENT_CANCEL_URL` (optional explicit cancel return URL)
 
 2. Install dependencies and start server
 
@@ -42,9 +53,23 @@ Notes
 - To seed sample data use the seed scripts in `backend/seeds/`:
   - `node backend/seeds/seed_sample_data.js` (members + attendance)
   - `node backend/seeds/seed_donations_events.js` (donations + events)
+- Live payment support now includes:
+  - M-Pesa STK push through Safaricom Daraja when the M-Pesa environment variables are configured
+  - provider-hosted bank redirect checkout when `BANK_PAYMENT_REDIRECT_URL` is configured
+  - automatic recording of successful payments into church contributions
 
 Frontend
-- Open the `frontend/index.html` in a browser and login as admin to access admin pages.
+- Start the backend server and open `http://localhost:<port>/` in a browser to access the app.
+
+Deploying From GitHub
+- The repo now includes a root `Dockerfile`, so services like Railway can deploy it directly from GitHub.
+- Recommended path:
+  1. Push the repo to GitHub.
+  2. In Railway, create a new project from the GitHub repo.
+  3. Add a MySQL service in Railway or connect an external MySQL database.
+  4. Set the environment variables from `.env.example`.
+  5. Set `APP_BASE_URL` and any payment callback URLs to the live app URL.
+- The container starts the Express app from `backend/server.js` and respects the platform-provided `PORT`.
 
 Known behavior
 - JWT tokens default to `JWT_SECRET` or `secretkey` if not set.

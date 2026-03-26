@@ -7,45 +7,84 @@
 <link rel="stylesheet" href="css/styles.css">
 <link rel="stylesheet" href="css/church-theme.css">
 <style>
-.page { max-width: 1100px; margin: 32px auto; padding: 20px; }
-.topbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-.title { margin: 8px 0 16px; }
-.grid { display: grid; gap: 20px; grid-template-columns: 1fr 1fr; }
-.card {
-    background: rgba(6, 17, 38, 0.72);
-    border: 1px solid rgba(212, 160, 23, 0.35);
-    border-radius: 14px;
-    box-shadow: 0 14px 30px rgba(0,0,0,0.26);
-    padding: 18px;
+.contribution-grid {
+    display: grid;
+    gap: 22px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-.account-line { display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-bottom:1px dashed rgba(212,160,23,0.3);}
-.account-line:last-child { border-bottom:none; }
-.muted { color: rgba(251, 248, 239, 0.85); }
+
+.account-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--border-strong);
+}
+
+.account-line:last-child {
+    border-bottom: none;
+}
+
 .total {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #f3d06e;
+    font-size: clamp(2rem, 4vw, 2.5rem);
+    font-weight: 800;
+    color: var(--primary-dark);
     margin-top: 10px;
 }
-.actions { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
-.hidden { display: none; }
-.table-wrap { overflow-x:auto; margin-top: 20px; }
-table { width:100%; border-collapse: collapse; }
-th, td { padding: 10px; text-align: left; border: 1px solid rgba(20, 30, 55, 0.2); }
-th { white-space: nowrap; }
-@media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+.hidden {
+    display: none;
+}
+
+.payment-methods {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin-top: 8px;
+}
+
+.payment-option {
+    padding: 18px;
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    background: linear-gradient(180deg, #fbfdff, #f4f9ff);
+}
+
+.payment-option h4 {
+    margin-bottom: 8px;
+}
+
+.payment-option p {
+    margin-bottom: 12px;
+}
+
+@media (max-width: 900px) {
+    .contribution-grid {
+        grid-template-columns: 1fr;
+    }
+}
 </style>
-</head>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f6ecf">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Church App">
+<link rel="apple-touch-icon" href="assets/icon-192.png"></head>
 <body class="church-theme">
 <div class="page">
-    <div class="topbar">
-        <button id="backBtn" onclick="window.location.href='donations.html'">&larr; Contribution Types</button>
-        <button id="logoutBtn">Logout</button>
+    <div class="page-header">
+        <div>
+            <span class="page-kicker">Contribution Details</span>
+            <h1 id="contribTitle">Contributions</h1>
+            <p class="page-intro">Review approved account details, pay live through M-Pesa STK push or bank redirect, and track recorded contributions for this category.</p>
+        </div>
+        <div class="header-actions">
+            <button id="backBtn" class="btn btn-outline" onclick="window.location.href='donations.html'">&larr; Contribution Types</button>
+            <button id="logoutBtn" class="btn btn-danger">Logout</button>
+        </div>
     </div>
 
-    <h1 id="contribTitle" class="title">Contributions</h1>
-
-    <div class="grid">
+    <div class="contribution-grid">
         <section class="card">
             <h3>Contribution Account Details</h3>
             <p class="muted">Use any of the following approved channels:</p>
@@ -61,46 +100,68 @@ th { white-space: nowrap; }
             <p class="muted">Live total for this contribution type</p>
             <div id="totalContributed" class="total">KSH 0</div>
             <div class="actions">
-                <button id="showDonateBtn">Contribute Now</button>
-                <button id="refreshBtn">Refresh</button>
+                <button id="showDonateBtn" class="btn btn-primary">Contribute Now</button>
+                <button id="refreshBtn" class="btn btn-outline">Refresh</button>
             </div>
         </section>
     </div>
 
-    <section id="donateFormDiv" class="card hidden" style="margin-top:20px;">
+    <section id="donateFormDiv" class="card hidden" style="margin-top:22px;">
         <h3>Make a Contribution</h3>
         <form id="donationForm">
             <label for="member_name">Member Name</label>
-            <input type="text" id="member_name" placeholder="Enter member name" required />
+            <input type="text" id="member_name" placeholder="Enter member name" required>
             <label for="amount">Amount</label>
-            <input type="number" id="amount" min="1" step="0.01" placeholder="Enter amount" required />
+            <input type="number" id="amount" min="1" step="0.01" placeholder="Enter amount" required>
+            <label for="phone_number">M-Pesa Phone Number</label>
+            <input type="tel" id="phone_number" placeholder="e.g. 0712345678">
             <label for="description">Description</label>
-            <input type="text" id="description" placeholder="Optional note" />
-            <div class="actions">
-                <button type="submit">Submit Contribution</button>
-                <button type="button" id="cancelDonateBtn">Cancel</button>
+            <input type="text" id="description" placeholder="Optional note">
+
+            <div class="payment-methods">
+                <div class="payment-option">
+                    <h4>M-Pesa STK Push</h4>
+                    <p class="muted">Send a live STK prompt to the donor's phone and record the payment when it completes.</p>
+                    <button type="button" id="mpesaPayBtn" class="btn btn-secondary">Pay with M-Pesa</button>
+                </div>
+                <div class="payment-option">
+                    <h4>Bank Redirect</h4>
+                    <p class="muted">Redirect the donor to the configured bank or checkout provider to enter bank details and pay.</p>
+                    <button type="button" id="bankPayBtn" class="btn btn-primary">Pay by Bank Redirect</button>
+                </div>
+            </div>
+
+            <div class="actions" style="margin-top:14px;">
+                <button type="submit" id="manualRecordBtn" class="btn btn-outline">Record Manual Contribution</button>
+                <button type="button" id="cancelDonateBtn" class="btn btn-outline">Cancel</button>
             </div>
         </form>
+        <div id="paymentStatusPanel" class="status-panel" style="display:none; margin-top:16px;"></div>
     </section>
 
-    <section class="card table-wrap">
+    <section class="card" style="margin-top:22px;">
         <h3>Members Who Have Contributed</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Member</th>
-                    <th>Amount</th>
-                    <th>Description</th>
-                    <th>Date</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="donationsTable"></tbody>
-        </table>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Member</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Reference</th>
+                        <th>Description</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="donationsTable"></tbody>
+            </table>
+        </div>
     </section>
 </div>
 
 <script src="js/contribution.js"></script>
+<script src="js/pwa.js"></script>
 </body>
 </html>
