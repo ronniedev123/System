@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Church Management System - Login/Register</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 40px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+        }
+        h1, h2 { text-align: center; }
+        form { display: flex; flex-direction: column; margin-bottom: 20px; }
+        input { padding: 10px; margin: 5px 0; font-size: 16px; }
+        button { padding: 10px; margin-top: 10px; font-size: 16px; cursor: pointer; }
+        p { color: red; text-align: center; }
+        .toggle-link { text-align: center; margin-top: 10px; cursor: pointer; color: blue; text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h1>Church Management System</h1>
+
+    <!-- Login Form -->
+    <div id="loginDiv">
+        <h2>Login</h2>
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+            <p id="error"></p>
+        </form>
+        <div class="toggle-link" onclick="toggleForms()">Don't have an account? Register</div>
+    </div>
+
+    <!-- Registration Form -->
+    <div id="registerDiv" style="display:none;">
+        <h2>Register</h2>
+        <form id="registerForm">
+            <input type="text" id="regName" placeholder="Full Name" required>
+            <input type="email" id="regEmail" placeholder="Email" required>
+            <input type="password" id="regPassword" placeholder="Password" required>
+            <button type="submit">Register</button>
+            <p id="regError"></p>
+        </form>
+        <div class="toggle-link" onclick="toggleForms()">Already have an account? Login</div>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Switch between login and registration forms
+        function toggleForms() {
+            const loginDiv = document.getElementById("loginDiv");
+            const registerDiv = document.getElementById("registerDiv");
+            if (loginDiv.style.display === "none") {
+                loginDiv.style.display = "block";
+                registerDiv.style.display = "none";
+            } else {
+                loginDiv.style.display = "none";
+                registerDiv.style.display = "block";
+            }
+        }
+    </script>
+</body>
+</html>

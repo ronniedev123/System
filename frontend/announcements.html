@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Announcements</title>
+<link rel="stylesheet" href="css/styles.css">
+<style>
+    .section { border: 1px solid #ddd; padding: 20px; margin: 20px 0; border-radius: 8px; }
+    .admin-section { background-color: #fff3cd; border-color: #ffc107; }
+    input, textarea, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    button { background-color: #2196F3; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px; }
+    button:hover { background-color: #0b7dda; }
+    .error { color: #f44336; }
+    .success { color: #4CAF50; }
+</style>
+</head>
+<body>
+<nav style="margin-bottom:16px;">
+    <button onclick="window.location.href='dashboard.html'" style="background-color:#2196f3; color:white; border:none; padding:8px 16px; border-radius:4px; cursor:pointer; margin-right:10px;">← Back</button>
+    <a href="dashboard.html">Dashboard</a> | <a href="graphs.html">Graphs</a>
+    <span style="float:right"><a href="index.html">Logout</a></span>
+</nav>
+<h1>Announcements</h1>
+
+<!-- Admin SMS Section -->
+<div id="adminSMSSection" class="section admin-section" style="display: none;">
+    <h3>📱 Send SMS to Member (Admin Only)</h3>
+    <p style="color: #666; font-size: 14px;">Send announcement messages directly to members' phone numbers</p>
+    <label for="memberSelect" style="display: block; margin-bottom: 8px; font-weight: bold;">Select Member:</label>
+    <select id="memberSelect" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px;"></select>
+    
+    <label for="smsMessage" style="display: block; margin-top: 15px; margin-bottom: 8px; font-weight: bold;">Message:</label>
+    <textarea id="smsMessage" placeholder="Type your message for SMS..." style="height: 100px;"></textarea>
+    
+    <div id="smsCharCount" style="font-size: 12px; color: #666; margin: 5px 0;">Characters: 0 / 160</div>
+    <button id="sendSMSBtn">Send SMS</button>
+    <div id="smsStatus"></div>
+</div>
+
+<!-- Create Announcement Section -->
+<div id="createBox" class="section">
+    <h3>📢 Create Announcement</h3>
+    <input id="title" placeholder="Title"><br>
+    <textarea id="message" placeholder="Message"></textarea><br>
+    <label><input type="checkbox" id="sendEmail"> Send email to members</label><br>
+    <button id="createBtn">Create</button>
+</div>
+<hr>
+<h3>Recent Announcements</h3>
+<ul id="list"></ul>
+<script src="js/announcements.js"></script>
+</body>
+</html>

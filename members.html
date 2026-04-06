@@ -68,6 +68,8 @@
 
 .table-wrapper {
     overflow-x: auto;
+    max-height: 470px;
+    overflow-y: auto;
 }
 
 table {
@@ -187,6 +189,18 @@ tr:hover {
         <div>
             <span id="activeDepartmentBadge" class="context-badge">All Members</span>
         </div>
+    </div>
+
+    <div class="card">
+        <h3>Search & Filter Members</h3>
+        <form id="memberFilterForm" class="form-grid">
+            <input type="text" id="filterName" placeholder="Search by name" />
+            <select id="filterDepartment">
+                <option value="">All departments</option>
+            </select>
+            <input type="text" id="filterAddress" placeholder="Search by address" />
+            <button type="button" id="clearFiltersBtn" class="btn btn-secondary">Clear filters</button>
+        </form>
     </div>
 
     <div class="card">

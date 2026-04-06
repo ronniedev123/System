@@ -19,6 +19,10 @@ if (authPayload?.role === "normaluser") {
 const membersTable = document.getElementById("membersTable");
 const addMemberForm = document.getElementById("addMemberForm");
 const departmentList = document.getElementById("departmentList");
+const filterNameInput = document.getElementById("filterName");
+const filterDepartmentSelect = document.getElementById("filterDepartment");
+const filterAddressInput = document.getElementById("filterAddress");
+const clearFiltersBtn = document.getElementById("clearFiltersBtn");
 const membersHeading = document.getElementById("membersHeading");
 const membersSubheading = document.getElementById("membersSubheading");
 const activeDepartmentBadge = document.getElementById("activeDepartmentBadge");
@@ -37,8 +41,11 @@ const DEFAULT_DEPARTMENTS = [
     "Worshippers",
     "Security",
     "Decorators",
+    "Correspondents",
     "Kitchen",
     "Sunday School Teachers",
+    "Protocal",
+    "Evangelism",
 ];
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -164,23 +171,42 @@ function buildDepartmentList() {
 }
 
 function syncDepartmentDatalist() {
-    const departments = buildDepartmentList()
+    const allDepartments = buildDepartmentList();
+    const departments = allDepartments
         .filter((dept) => dept !== MASTER_LABEL && dept !== UNASSIGNED_LABEL);
 
     if (activeDepartment !== MASTER_LABEL && activeDepartment !== UNASSIGNED_LABEL && !departments.includes(activeDepartment)) {
         departments.push(activeDepartment);
     }
 
+    const filterDepartments = allDepartments
+        .filter((dept) => dept !== MASTER_LABEL);
+
     ["department", "edit_department"].forEach((selectId) => {
         const select = document.getElementById(selectId);
         if (!select) return;
 
-        const currentSelection = getDepartmentSelections(selectId);
-        select.innerHTML = departments
+        const previousValue = selectId === "filterDepartment" ? select.value : null;
+        const currentSelection = selectId === "filterDepartment" ? null : getDepartmentSelections(selectId);
+        select.innerHTML = "<option value=\"\">All departments</option>" + departments
             .map((dept) => `<option value="${escapeHtml(dept)}">${escapeHtml(dept)}</option>`)
             .join("");
-        setDepartmentSelections(selectId, currentSelection);
+
+        if (selectId === "filterDepartment") {
+            if (previousValue) select.value = previousValue;
+        } else {
+            setDepartmentSelections(selectId, currentSelection);
+        }
     });
+
+    const filterSelect = document.getElementById("filterDepartment");
+    if (filterSelect) {
+        const previousValue = filterSelect.value;
+        filterSelect.innerHTML = "<option value=\"\">All departments</option>" + filterDepartments
+            .map((dept) => `<option value="${escapeHtml(dept)}">${escapeHtml(dept)}</option>`)
+            .join("");
+        if (previousValue) filterSelect.value = previousValue;
+    }
 }
 
 function syncDepartmentFormDefaults() {
@@ -224,12 +250,38 @@ function updatePageContext(filteredCount) {
     }
 }
 
-function getFilteredMembers() {
-    if (activeDepartment === MASTER_LABEL) {
-        return allMembers;
-    }
+function applyMemberFilters(members) {
+    const nameTerm = (filterNameInput?.value || "").trim().toLowerCase();
+    const deptTerm = (filterDepartmentSelect?.value || "").trim();
+    const addressTerm = (filterAddressInput?.value || "").trim().toLowerCase();
 
-    return allMembers.filter((member) => memberHasDepartment(member, activeDepartment));
+    return members.filter((member) => {
+        if (nameTerm && !String(member.name || "").toLowerCase().includes(nameTerm)) {
+            return false;
+        }
+
+        if (addressTerm && !String(member.address || "").toLowerCase().includes(addressTerm)) {
+            return false;
+        }
+
+        if (deptTerm) {
+            if (deptTerm === UNASSIGNED_LABEL) {
+                if (getMemberDepartments(member).length > 0) return false;
+            } else if (!memberHasDepartment(member, deptTerm)) {
+                return false;
+            }
+        }
+
+        return true;
+    });
+}
+
+function getFilteredMembers() {
+    const baseMembers = activeDepartment === MASTER_LABEL
+        ? allMembers
+        : allMembers.filter((member) => memberHasDepartment(member, activeDepartment));
+
+    return applyMemberFilters(baseMembers);
 }
 
 function renderMembers() {
@@ -322,7 +374,28 @@ async function fetchMembers() {
 
     syncDepartmentDatalist();
     syncDepartmentFormDefaults();
+    setupMemberFilters();
     renderMembers();
+}
+
+function setupMemberFilters() {
+    if (filterNameInput) {
+        filterNameInput.addEventListener("input", renderMembers);
+    }
+    if (filterAddressInput) {
+        filterAddressInput.addEventListener("input", renderMembers);
+    }
+    if (filterDepartmentSelect) {
+        filterDepartmentSelect.addEventListener("change", renderMembers);
+    }
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener("click", () => {
+            if (filterNameInput) filterNameInput.value = "";
+            if (filterAddressInput) filterAddressInput.value = "";
+            if (filterDepartmentSelect) filterDepartmentSelect.value = "";
+            renderMembers();
+        });
+    }
 }
 
 window.openEditModal = function (id, name, phone, address, photoUrl, gender, department) {

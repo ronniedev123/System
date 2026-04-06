@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage Users</title>
+<link rel="stylesheet" href="css/styles.css">
+<style>
+body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; }
+table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+th { background: #f2f2f2; }
+button { padding: 5px 10px; cursor: pointer; }
+#logoutBtn { float: right; background-color: #f44336; color: white; border: none; border-radius: 5px; }
+</style>
+</head>
+<body>
+<button id="backBtn" onclick="window.location.href='dashboard.html'" style="float:left; background-color:#2196f3; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; margin-right:10px;">← Back</button>
+<button id="logoutBtn">Logout</button>
+<h1>Manage Users</h1>
+
+<form id="addUserForm">
+    <input type="text" id="name" placeholder="Name" required />
+    <input type="email" id="email" placeholder="Email" required />
+    <input type="password" id="password" placeholder="Password" required />
+    <select id="role">
+        <option value="user">User</option>
+        <option value="admin">Admin</option>
+    </select>
+    <button type="submit">Add User</button>
+</form>
+
+<table>
+    <thead>
+        <tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Actions</th></tr>
+    </thead>
+    <tbody id="usersTable"></tbody>
+</table>
+
+<script src="js/members.js"></script>
+<script>
+// members.js already handles token checks and fetching; this page manages users (system accounts)
+// Keep the existing users-management logic from members.js usage of /api/members
+
+// Hook up the addUser form to call register endpoint (members.js currently implements member add, so keep inline)
+document.getElementById('logoutBtn').addEventListener('click',()=>{ localStorage.removeItem('token'); window.location.href="index.html"; });
+
+// Existing members.js file listens for addMemberForm; for users we keep the add form behaviour below.
+document.getElementById('addUserForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+    if(!token) return window.location.href = 'index.html';
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const role = document.getElementById('role').value;
+    try{
+        const res = await fetch('http://localhost:3000/api/auth/register', {
+            method: 'POST', headers: {'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+            body: JSON.stringify({name,email,password,role})
+        });
+        const data = await res.json();
+        if(res.ok){ alert('User added'); window.location.reload(); }
+        else alert(data.error || data.message || 'Error');
+    } catch(err){ console.error(err); alert('Server error'); }
+});
+
+// Load and display users
+async function loadUsers(){
+    const token = localStorage.getItem('token');
+    if(!token) return window.location.href='index.html';
+    try{
+        const res = await fetch('http://localhost:3000/api/auth/users', { headers: { Authorization: `Bearer ${token}` } });
+        if(!res.ok){ const d = await res.json(); return alert(d.error || d.message || 'Failed to fetch users'); }
+        const users = await res.json();
+        const tbody = document.getElementById('usersTable');
+        tbody.innerHTML = '';
+        users.forEach(u => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${u.id}</td><td>${u.name}</td><td>${u.email}</td><td>${u.role}</td><td></td>`;
+            tbody.appendChild(tr);
+        });
+    }catch(err){ console.error(err); alert('Error loading users'); }
+}
+
+loadUsers();
+</script>
+</body>
+</html>

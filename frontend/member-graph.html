@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Member Attendance Graph</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="css/styles.css">
+<style>
+    body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .controls { margin: 20px 0; display: flex; gap: 10px; }
+    .controls select, .controls button { padding: 10px 15px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; }
+    .controls button { background-color: #4CAF50; color: white; border: none; font-weight: bold; }
+    .controls button:hover { background-color: #45a049; }
+    .charts-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+    canvas { max-width: 100%; }
+    @media (max-width: 768px) { .charts-container { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="header">
+    <h1 id="memberName">Loading...</h1>
+    <button onclick="window.location.href='members.html'" style="background-color:#2196f3; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">← Back to Members</button>
+</div>
+
+<div class="controls">
+    <label for="periodSelect">Period:</label>
+    <select id="periodSelect">
+        <option value="1">Current Month</option>
+        <option value="3">Last 3 Months</option>
+        <option value="6">Last 6 Months</option>
+        <option value="12">Current Year</option>
+    </select>
+    <button onclick="loadMemberAttendanceGraph()">Refresh</button>
+    <button onclick="downloadMemberReport()" style="background-color:#ff9800;">Download Report</button>
+</div>
+
+<div class="charts-container">
+    <div>
+        <h3>Monthly Attendance %</h3>
+        <canvas id="memberAttendanceChart"></canvas>
+    </div>
+    <div>
+        <h3>Attendance Trend</h3>
+        <canvas id="memberTrendChart"></canvas>
+    </div>
+</div>
+
+<div style="margin-top: 30px; background-color: #f9f9f9; padding: 20px; border-radius: 4px;">
+    <h3>Monthly Summary</h3>
+    <table id="summaryTable" style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="background-color: #2196F3; color: white;">
+                <th style="border: 1px solid #ddd; padding: 10px; text-align: left;">Month</th>
+                <th style="border: 1px solid #ddd; padding: 10px; text-align: center;">Sundays</th>
+                <th style="border: 1px solid #ddd; padding: 10px; text-align: center;">Present</th>
+                <th style="border: 1px solid #ddd; padding: 10px; text-align: center;">Absent</th>
+                <th style="border: 1px solid #ddd; padding: 10px; text-align: center;">Attendance %</th>
+            </tr>
+        </thead>
+        <tbody id="summaryTableBody">
+        </tbody>
+    </table>
+</div>
+
+<script src="js/member-graph.js"></script>
+</body>
+</html>
