@@ -14,6 +14,7 @@ const { exportToCSV } = require('../utils/export');
 const memberModel = require('../models/memberModel');
 
 router.post("/", verifyToken, createMember);
+router.get("/departments-summary", verifyToken, membersController.getDepartmentSummary);
 router.get("/", verifyToken, getMembers);
 router.get("/my-pass", authMiddleware, membersController.getMyMemberPass);
 router.delete('/:id', authMiddleware, membersController.deleteMember);

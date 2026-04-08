@@ -1,5 +1,58 @@
 const db = require("../utils/db");
 
+function clampNumber(value, { fallback, min = 1, max = Number.MAX_SAFE_INTEGER } = {}) {
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(max, Math.max(min, parsed));
+}
+
+function buildAttendanceFilters({ memberId, memberIds, year, month, department } = {}) {
+  const conditions = [];
+  const params = [];
+
+  if (memberId) {
+    conditions.push("a.member_id = ?");
+    params.push(memberId);
+  }
+
+  if (Array.isArray(memberIds) && memberIds.length) {
+    conditions.push(`a.member_id IN (${memberIds.map(() => "?").join(", ")})`);
+    params.push(...memberIds);
+  }
+
+  const safeYear = Number.parseInt(year, 10);
+  const safeMonth = Number.parseInt(month, 10);
+  if (Number.isFinite(safeYear)) {
+    if (Number.isFinite(safeMonth) && safeMonth >= 1 && safeMonth <= 12) {
+      conditions.push("a.check_in >= ? AND a.check_in < ?");
+      params.push(
+        `${safeYear}-${String(safeMonth).padStart(2, "0")}-01 00:00:00`,
+        safeMonth === 12
+          ? `${safeYear + 1}-01-01 00:00:00`
+          : `${safeYear}-${String(safeMonth + 1).padStart(2, "0")}-01 00:00:00`
+      );
+    } else {
+      conditions.push("a.check_in >= ? AND a.check_in < ?");
+      params.push(`${safeYear}-01-01 00:00:00`, `${safeYear + 1}-01-01 00:00:00`);
+    }
+  }
+
+  const normalizedDepartment = String(department || "").trim();
+  if (normalizedDepartment && normalizedDepartment !== "All Members") {
+    if (normalizedDepartment === "Unassigned") {
+      conditions.push("(m.department IS NULL OR TRIM(m.department) = '')");
+    } else {
+      conditions.push("FIND_IN_SET(?, REPLACE(IFNULL(m.department, ''), ', ', ',')) > 0");
+      params.push(normalizedDepartment);
+    }
+  }
+
+  return {
+    whereClause: conditions.length ? `WHERE ${conditions.join(" AND ")}` : "",
+    params,
+  };
+}
+
 exports.addAttendance = async ({ memberId, date, createdBy, source = "manual" }) => {
   // 'date' param maps to check_in column in DB
   let checkInStr;
@@ -73,15 +126,71 @@ exports.getByMember = async (memberId) => {
   return rows;
 };
 
-exports.getAllRecords = async (user) => {
+exports.getAllRecords = async (user, { limit = 200 } = {}) => {
+  const safeLimit = clampNumber(limit, { fallback: 200, min: 1, max: 5000 });
   // Return joined attendance with member/user name - all users can see all records
-  const [rows] = await db.execute(
+  const [rows] = await db.query(
     `SELECT a.id, a.member_id, a.check_in, a.attendance_source, m.name as user_name
      FROM attendance a
      LEFT JOIN members m ON a.member_id = m.id
-     ORDER BY a.check_in DESC LIMIT 200`
+     ORDER BY a.check_in DESC LIMIT ?`,
+    [safeLimit]
   );
   return rows;
+};
+
+exports.getRecords = async ({ memberId, memberIds, year, month, department, limit = 5000 } = {}) => {
+  const safeLimit = clampNumber(limit, { fallback: 5000, min: 1, max: 10000 });
+  const filters = buildAttendanceFilters({ memberId, memberIds, year, month, department });
+  const [rows] = await db.query(
+    `SELECT a.id, a.member_id, a.check_in, a.attendance_source, m.name as user_name, m.department
+     FROM attendance a
+     LEFT JOIN members m ON a.member_id = m.id
+     ${filters.whereClause}
+     ORDER BY a.check_in DESC
+     LIMIT ?`,
+    [...filters.params, safeLimit]
+  );
+  return rows;
+};
+
+exports.getRecordsPage = async ({ page = 1, pageSize = 200, memberId, year, month, department } = {}) => {
+  const safePage = clampNumber(page, { fallback: 1, min: 1, max: 100000 });
+  const safePageSize = clampNumber(pageSize, { fallback: 200, min: 1, max: 500 });
+  const offset = (safePage - 1) * safePageSize;
+  const filters = buildAttendanceFilters({ memberId, year, month, department });
+
+  const [countRows] = await db.execute(
+    `SELECT COUNT(*) AS total
+     FROM attendance a
+     LEFT JOIN members m ON a.member_id = m.id
+     ${filters.whereClause}`,
+    filters.params
+  );
+  const totalItems = Number(countRows[0]?.total || 0);
+  const totalPages = totalItems > 0 ? Math.ceil(totalItems / safePageSize) : 1;
+
+  const [rows] = await db.query(
+    `SELECT a.id, a.member_id, a.check_in, a.attendance_source, m.name as user_name, m.department
+     FROM attendance a
+     LEFT JOIN members m ON a.member_id = m.id
+     ${filters.whereClause}
+     ORDER BY a.check_in DESC
+     LIMIT ? OFFSET ?`,
+    [...filters.params, safePageSize, offset]
+  );
+
+  return {
+    items: rows,
+    pagination: {
+      page: safePage,
+      pageSize: safePageSize,
+      totalItems,
+      totalPages,
+      hasPrevPage: safePage > 1,
+      hasNextPage: safePage < totalPages,
+    },
+  };
 };
 
 // Count attendance per member between dates (inclusive)

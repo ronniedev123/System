@@ -59,7 +59,7 @@ if (registerForm) {
         const name = document.getElementById('regName').value.trim();
         const phone = document.getElementById('regPhone').value.trim();
         const password = document.getElementById('regPassword').value;
-        const role = document.getElementById('regRole').value;
+        const role = document.getElementById('regRole')?.value || 'normaluser';
         const submitBtn = registerForm.querySelector('button[type="submit"]');
 
         if (regErrorEl) regErrorEl.textContent = '';

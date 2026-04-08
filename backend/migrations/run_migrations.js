@@ -151,6 +151,17 @@ module.exports = (async () => {
       await db.execute(`ALTER TABLE members ADD UNIQUE INDEX uniq_members_attendance_code (attendance_code)`);
     }
 
+    const [memberNameIndexRows] = await db.execute(
+      `SELECT COUNT(*) as count
+       FROM INFORMATION_SCHEMA.STATISTICS
+       WHERE TABLE_SCHEMA = DATABASE()
+         AND TABLE_NAME = 'members'
+         AND INDEX_NAME = 'idx_members_name'`
+    );
+    if (!memberNameIndexRows[0].count) {
+      await db.execute(`ALTER TABLE members ADD INDEX idx_members_name (name)`);
+    }
+
     await db.execute(`
       UPDATE members
       SET attendance_code = CONCAT('CHM-', LPAD(id, 6, '0'))
@@ -220,6 +231,17 @@ module.exports = (async () => {
       await db.execute(`ALTER TABLE donations ADD COLUMN payment_reference VARCHAR(255) NULL AFTER payment_method`);
     }
 
+    const [donationDateIndexRows] = await db.execute(
+      `SELECT COUNT(*) as count
+       FROM INFORMATION_SCHEMA.STATISTICS
+       WHERE TABLE_SCHEMA = DATABASE()
+         AND TABLE_NAME = 'donations'
+         AND INDEX_NAME = 'idx_donations_donation_date'`
+    );
+    if (!donationDateIndexRows[0].count) {
+      await db.execute(`ALTER TABLE donations ADD INDEX idx_donations_donation_date (donation_date)`);
+    }
+
     // attendance
     await db.execute(`
       CREATE TABLE IF NOT EXISTS attendance (
@@ -246,6 +268,28 @@ module.exports = (async () => {
       await db.execute(`ALTER TABLE attendance ADD COLUMN attendance_source VARCHAR(30) NOT NULL DEFAULT 'manual' AFTER check_out`);
     }
 
+    const [attendanceMemberDateIndexRows] = await db.execute(
+      `SELECT COUNT(*) as count
+       FROM INFORMATION_SCHEMA.STATISTICS
+       WHERE TABLE_SCHEMA = DATABASE()
+         AND TABLE_NAME = 'attendance'
+         AND INDEX_NAME = 'idx_attendance_member_checkin'`
+    );
+    if (!attendanceMemberDateIndexRows[0].count) {
+      await db.execute(`ALTER TABLE attendance ADD INDEX idx_attendance_member_checkin (member_id, check_in)`);
+    }
+
+    const [attendanceDateIndexRows] = await db.execute(
+      `SELECT COUNT(*) as count
+       FROM INFORMATION_SCHEMA.STATISTICS
+       WHERE TABLE_SCHEMA = DATABASE()
+         AND TABLE_NAME = 'attendance'
+         AND INDEX_NAME = 'idx_attendance_checkin'`
+    );
+    if (!attendanceDateIndexRows[0].count) {
+      await db.execute(`ALTER TABLE attendance ADD INDEX idx_attendance_checkin (check_in)`);
+    }
+
     // announcements
     await db.execute(`
       CREATE TABLE IF NOT EXISTS announcements (
@@ -257,6 +301,17 @@ module.exports = (async () => {
         FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     `);
+
+    const [announcementsCreatedAtIndexRows] = await db.execute(
+      `SELECT COUNT(*) as count
+       FROM INFORMATION_SCHEMA.STATISTICS
+       WHERE TABLE_SCHEMA = DATABASE()
+         AND TABLE_NAME = 'announcements'
+         AND INDEX_NAME = 'idx_announcements_created_at'`
+    );
+    if (!announcementsCreatedAtIndexRows[0].count) {
+      await db.execute(`ALTER TABLE announcements ADD INDEX idx_announcements_created_at (created_at)`);
+    }
 
     // weekly programs
     await db.execute(`

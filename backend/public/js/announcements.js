@@ -41,7 +41,7 @@ async function loadMembers() {
   if (role !== 'admin') return;
   
   try {
-    const res = await fetch('/api/members', {
+    const res = await fetch('/api/members?mode=summary&hasPhone=1&limit=5000', {
       headers: { Authorization: `Bearer ${token}` }
     });
     if (!res.ok) throw new Error('Failed to load members');

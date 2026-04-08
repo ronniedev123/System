@@ -1,6 +1,7 @@
 const token = localStorage.getItem("token");
 let authPayload = null;
-let allMembers = [];
+let departmentSummary = [];
+let totalMembers = 0;
 
 const MASTER_LABEL = "All Members";
 const UNASSIGNED_LABEL = "Unassigned";
@@ -42,36 +43,9 @@ function escapeHtml(value) {
         .replace(/'/g, "&#39;");
 }
 
-function parseDepartments(value) {
-    const normalizeDepartmentLabel = (item) => {
-        const label = String(item || "").trim();
-        if (!label) return "";
-        return label.toLowerCase() === "worship" ? "Worshippers" : label;
-    };
-
-    if (Array.isArray(value)) {
-        return [...new Set(value.map(normalizeDepartmentLabel).filter(Boolean))];
-    }
-
-    const raw = String(value || "").trim();
-    if (!raw) return [];
-
-    if (raw.startsWith("[")) {
-        try {
-            const parsed = JSON.parse(raw);
-            if (Array.isArray(parsed)) {
-                return [...new Set(parsed.map(normalizeDepartmentLabel).filter(Boolean))];
-            }
-        } catch (err) {
-            // Fall back to comma-separated values below.
-        }
-    }
-
-    return [...new Set(raw.split(",").map(normalizeDepartmentLabel).filter(Boolean))];
-}
-
-function getMemberDepartments(member) {
-    return parseDepartments(member?.departments ?? member?.department);
+function getDepartmentCountByName(department) {
+    const match = departmentSummary.find((item) => item.name === department);
+    return Number(match?.count || 0);
 }
 
 function buildDepartmentList() {
@@ -88,18 +62,9 @@ function buildDepartmentList() {
     };
 
     DEFAULT_DEPARTMENTS.forEach(addDepartment);
+    departmentSummary.forEach((item) => addDepartment(item.name));
 
-    let hasUnassigned = false;
-    allMembers.forEach((member) => {
-        const departments = getMemberDepartments(member);
-        if (!departments.length) {
-            hasUnassigned = true;
-        } else {
-            departments.forEach(addDepartment);
-        }
-    });
-
-    if (hasUnassigned) {
+    if (departmentSummary.some((item) => item.name === UNASSIGNED_LABEL)) {
         ordered.push(UNASSIGNED_LABEL);
     }
 
@@ -108,14 +73,10 @@ function buildDepartmentList() {
 
 function getDepartmentCount(department) {
     if (department === MASTER_LABEL) {
-        return allMembers.length;
+        return totalMembers;
     }
 
-    if (department === UNASSIGNED_LABEL) {
-        return allMembers.filter((member) => getMemberDepartments(member).length === 0).length;
-    }
-
-    return allMembers.filter((member) => getMemberDepartments(member).includes(department)).length;
+    return getDepartmentCountByName(department);
 }
 
 function getDepartmentDescription(department, count) {
@@ -148,9 +109,9 @@ function renderDepartments() {
     }).join("");
 }
 
-async function fetchMembers() {
+async function fetchDepartmentSummary() {
     try {
-        const res = await fetch("/api/members", {
+        const res = await fetch("/api/members/departments-summary", {
             headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -159,7 +120,22 @@ async function fetchMembers() {
         }
 
         const data = await res.json();
-        allMembers = Array.isArray(data) ? data : [];
+        departmentSummary = Array.isArray(data)
+            ? data
+            : Array.isArray(data?.departments)
+                ? data.departments
+                : [];
+        totalMembers = Number(
+            Array.isArray(data)
+                ? departmentSummary.reduce((sum, item) => {
+                    const name = String(item?.name || "").trim();
+                    if (!name || name === UNASSIGNED_LABEL) {
+                        return sum;
+                    }
+                    return sum + Number(item?.count || 0);
+                }, 0)
+                : data?.totalMembers || 0
+        );
         renderDepartments();
     } catch (err) {
         console.error(err);
@@ -178,4 +154,4 @@ if (logoutBtn) {
     });
 }
 
-fetchMembers();
+fetchDepartmentSummary();

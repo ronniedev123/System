@@ -18,11 +18,11 @@ if (authPayload?.role === "normaluser") {
 
 const membersTable = document.getElementById("membersTable");
 const addMemberForm = document.getElementById("addMemberForm");
-const departmentList = document.getElementById("departmentList");
 const membersHeading = document.getElementById("membersHeading");
 const membersSubheading = document.getElementById("membersSubheading");
 const activeDepartmentBadge = document.getElementById("activeDepartmentBadge");
 const membersEmptyState = document.getElementById("membersEmptyState");
+const membersPageInfo = document.getElementById("membersPageInfo");
 const logoutBtn = document.getElementById("logoutBtn");
 const qrModal = document.getElementById("qrModal");
 const qrImage = document.getElementById("qrImage");
@@ -31,9 +31,24 @@ const qrCodeValue = document.getElementById("qrCodeValue");
 const copyQrCodeBtn = document.getElementById("copyQrCodeBtn");
 const openQrImageBtn = document.getElementById("openQrImageBtn");
 const closeQrModalBtn = document.getElementById("closeQrModalBtn");
+const filterNameInput = document.getElementById("filterName");
+const filterDepartmentSelect = document.getElementById("filterDepartment");
+const filterAddressInput = document.getElementById("filterAddress");
+const clearFiltersBtn = document.getElementById("clearFiltersBtn");
+const pageSizeSelect = document.getElementById("pageSizeSelect");
+const prevPageBtn = document.getElementById("prevPageBtn");
+const nextPageBtn = document.getElementById("nextPageBtn");
+
 let currentEditingMemberId = null;
-let allMembers = [];
+let currentPageMembers = [];
+let departmentSummary = [];
 let currentQrMember = null;
+let currentPage = 1;
+let currentPageSize = Number(pageSizeSelect?.value || 20);
+let totalMembers = 0;
+let totalPages = 1;
+let activeFetchId = 0;
+let filterDebounceId = null;
 
 const MASTER_LABEL = "All Members";
 const UNASSIGNED_LABEL = "Unassigned";
@@ -130,14 +145,6 @@ function formatDepartmentLabels(value) {
     return departments.length ? departments.join(", ") : UNASSIGNED_LABEL;
 }
 
-function memberHasDepartment(member, department) {
-    const departments = getMemberDepartments(member);
-    if (department === UNASSIGNED_LABEL) {
-        return departments.length === 0;
-    }
-    return departments.includes(department);
-}
-
 function getDepartmentSelections(selectId) {
     const select = document.getElementById(selectId);
     if (!select) return [];
@@ -151,6 +158,11 @@ function setDepartmentSelections(selectId, departments) {
     Array.from(select.options).forEach((option) => {
         option.selected = selected.has(option.value);
     });
+}
+
+function getDepartmentCount(label) {
+    const match = departmentSummary.find((item) => item.name === label);
+    return Number(match?.count || 0);
 }
 
 function buildDepartmentList() {
@@ -167,18 +179,13 @@ function buildDepartmentList() {
     };
 
     DEFAULT_DEPARTMENTS.forEach(addDept);
+    departmentSummary.forEach((item) => addDept(item.name));
 
-    let hasUnassigned = false;
-    allMembers.forEach((member) => {
-        const departments = getMemberDepartments(member);
-        if (!departments.length) {
-            hasUnassigned = true;
-        } else {
-            departments.forEach(addDept);
-        }
-    });
+    if (requestedDepartment) {
+        addDept(requestedDepartment);
+    }
 
-    if (hasUnassigned) {
+    if (departmentSummary.some((item) => item.name === UNASSIGNED_LABEL)) {
         ordered.push(UNASSIGNED_LABEL);
     }
 
@@ -187,15 +194,7 @@ function buildDepartmentList() {
 
 function syncDepartmentDatalist() {
     const allDepartments = buildDepartmentList();
-    const departments = allDepartments
-        .filter((dept) => dept !== MASTER_LABEL && dept !== UNASSIGNED_LABEL);
-
-    if (activeDepartment !== MASTER_LABEL && activeDepartment !== UNASSIGNED_LABEL && !departments.includes(activeDepartment)) {
-        departments.push(activeDepartment);
-    }
-
-    const filterDepartments = allDepartments
-        .filter((dept) => dept !== MASTER_LABEL);
+    const departments = allDepartments.filter((dept) => dept !== MASTER_LABEL && dept !== UNASSIGNED_LABEL);
 
     ["department", "edit_department"].forEach((selectId) => {
         const select = document.getElementById(selectId);
@@ -208,13 +207,17 @@ function syncDepartmentDatalist() {
         setDepartmentSelections(selectId, currentSelection);
     });
 
-    const filterSelect = document.getElementById("filterDepartment");
-    if (filterSelect) {
-        const previousValue = filterSelect.value;
-        filterSelect.innerHTML = "<option value=\"\">All departments</option>" + filterDepartments
-            .map((dept) => `<option value="${escapeHtml(dept)}">${escapeHtml(dept)}</option>`)
+    if (filterDepartmentSelect) {
+        const currentValue = activeDepartment === MASTER_LABEL ? "" : activeDepartment;
+        filterDepartmentSelect.innerHTML = "<option value=\"\">All departments</option>" + allDepartments
+            .filter((dept) => dept !== MASTER_LABEL)
+            .map((dept) => {
+                const count = getDepartmentCount(dept);
+                const label = count > 0 ? `${dept} (${count})` : dept;
+                return `<option value="${escapeHtml(dept)}">${escapeHtml(label)}</option>`;
+            })
             .join("");
-        if (previousValue) filterSelect.value = previousValue;
+        filterDepartmentSelect.value = currentValue;
     }
 }
 
@@ -223,17 +226,8 @@ function syncDepartmentFormDefaults() {
     if (!departmentInput) return;
 
     const currentSelection = getDepartmentSelections("department");
-    if (currentSelection.length) {
-        return;
-    }
-
-    if (activeDepartment === MASTER_LABEL) {
-        return;
-    }
-
-    if (activeDepartment === UNASSIGNED_LABEL) {
-        return;
-    }
+    if (currentSelection.length) return;
+    if (activeDepartment === MASTER_LABEL || activeDepartment === UNASSIGNED_LABEL) return;
 
     setDepartmentSelections("department", [activeDepartment]);
 }
@@ -259,12 +253,24 @@ function updatePageContext(filteredCount) {
     }
 }
 
-function getFilteredMembers() {
-    if (activeDepartment === MASTER_LABEL) {
-        return allMembers;
+function renderPagination() {
+    if (membersPageInfo) {
+        if (!totalMembers) {
+            membersPageInfo.textContent = "No members match the current filters.";
+        } else {
+            const start = (currentPage - 1) * currentPageSize + 1;
+            const end = Math.min(totalMembers, start + currentPageMembers.length - 1);
+            membersPageInfo.textContent = `Showing ${start}-${end} of ${totalMembers} members`;
+        }
     }
 
-    return allMembers.filter((member) => memberHasDepartment(member, activeDepartment));
+    if (prevPageBtn) {
+        prevPageBtn.disabled = currentPage <= 1;
+    }
+
+    if (nextPageBtn) {
+        nextPageBtn.disabled = currentPage >= totalPages;
+    }
 }
 
 function renderMembers() {
@@ -272,12 +278,11 @@ function renderMembers() {
     const tbody = membersTable.querySelector("tbody");
     if (!tbody) return;
 
-    const filtered = getFilteredMembers();
     tbody.innerHTML = "";
 
-    filtered.forEach((member, index) => {
+    currentPageMembers.forEach((member, index) => {
         const tr = document.createElement("tr");
-        const displayId = index + 1;
+        const displayId = (currentPage - 1) * currentPageSize + index + 1;
         const graphUrl = `member-graph.html?id=${encodeURIComponent(member.id)}&name=${encodeURIComponent(member.name)}&department=${encodeURIComponent(activeDepartment)}`;
         const nameLink = `<a href="${graphUrl}" class="text-link-strong">${escapeHtml(member.name)}</a>`;
         const deptLabel = formatDepartmentLabels(member.departments || member.department);
@@ -326,7 +331,7 @@ function renderMembers() {
         const canRemoveFromDepartment =
             activeDepartment !== MASTER_LABEL &&
             activeDepartment !== UNASSIGNED_LABEL &&
-            memberHasDepartment(member, activeDepartment);
+            getMemberDepartments(member).includes(activeDepartment);
 
         if (canRemoveFromDepartment) {
             const removeDeptBtn = document.createElement("button");
@@ -342,19 +347,20 @@ function renderMembers() {
     });
 
     if (membersEmptyState) {
-        membersEmptyState.style.display = filtered.length ? "none" : "block";
+        membersEmptyState.style.display = currentPageMembers.length ? "none" : "block";
         membersEmptyState.textContent = activeDepartment === MASTER_LABEL
             ? "No members have been added yet."
             : `No members found in ${activeDepartment} yet.`;
     }
 
-    updatePageContext(filtered.length);
+    updatePageContext(totalMembers);
+    renderPagination();
 }
 
 function openQrModal(memberId) {
-    const member = allMembers.find((item) => Number(item.id) === Number(memberId));
+    const member = currentPageMembers.find((item) => Number(item.id) === Number(memberId));
     if (!member) {
-        alert("Member record not found");
+        alert("Member record not found on this page");
         return;
     }
 
@@ -364,7 +370,6 @@ function openQrModal(memberId) {
     }
 
     currentQrMember = member;
-    const qrValue = buildAttendanceQrValue(member);
     const imageUrl = buildQrImageUrl(member);
 
     if (qrMemberName) {
@@ -388,22 +393,116 @@ function closeQrModal() {
     currentQrMember = null;
 }
 
-async function fetchMembers() {
-    const res = await fetch("/api/members", {
+async function readJson(res) {
+    const text = await res.text();
+    if (!text) return {};
+    try {
+        return JSON.parse(text);
+    } catch (err) {
+        return { message: text };
+    }
+}
+
+async function fetchDepartmentSummary() {
+    const res = await fetch("/api/members/departments-summary", {
         headers: { Authorization: `Bearer ${token}` },
     });
 
     if (!res.ok) {
-        throw new Error("Failed to load members");
+        throw new Error("Failed to load department summary");
     }
 
     const data = await res.json();
-    allMembers = Array.isArray(data) ? data : [];
-    allMembers.sort((a, b) => Number(a.id) - Number(b.id));
-
+    departmentSummary = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.departments)
+            ? data.departments
+            : [];
     syncDepartmentDatalist();
-    syncDepartmentFormDefaults();
+}
+
+function syncQueryString() {
+    const params = new URLSearchParams(window.location.search);
+    if (activeDepartment === MASTER_LABEL) {
+        params.delete("department");
+    } else {
+        params.set("department", activeDepartment);
+    }
+
+    const nextQuery = params.toString();
+    const nextUrl = nextQuery ? `${window.location.pathname}?${nextQuery}` : window.location.pathname;
+    window.history.replaceState({}, "", nextUrl);
+}
+
+async function fetchMembers(page = currentPage) {
+    const fetchId = ++activeFetchId;
+    currentPage = Math.max(1, Number(page) || 1);
+    currentPageSize = Number(pageSizeSelect?.value || currentPageSize || 20);
+
+    if (membersPageInfo) {
+        membersPageInfo.textContent = "Loading members...";
+    }
+
+    const params = new URLSearchParams({
+        page: String(currentPage),
+        pageSize: String(currentPageSize),
+    });
+
+    const search = String(filterNameInput?.value || "").trim();
+    const address = String(filterAddressInput?.value || "").trim();
+
+    if (search) params.set("search", search);
+    if (address) params.set("address", address);
+    if (activeDepartment !== MASTER_LABEL) params.set("department", activeDepartment);
+
+    const res = await fetch(`/api/members?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok) {
+        const error = await readJson(res);
+        throw new Error(error.error || error.message || "Failed to load members");
+    }
+
+    const data = await res.json();
+    if (fetchId !== activeFetchId) return;
+
+    currentPageMembers = Array.isArray(data.items) ? data.items : [];
+    totalMembers = Number(data.pagination?.totalItems || 0);
+    totalPages = Math.max(1, Number(data.pagination?.totalPages || 1));
+
+    if (currentPage > totalPages) {
+        return fetchMembers(totalPages);
+    }
+
     renderMembers();
+}
+
+async function refreshMembersView(page = currentPage) {
+    await fetchDepartmentSummary();
+    await fetchMembers(page);
+    syncDepartmentFormDefaults();
+    syncQueryString();
+}
+
+function queueFilterRefresh() {
+    window.clearTimeout(filterDebounceId);
+    filterDebounceId = window.setTimeout(() => {
+        currentPage = 1;
+        refreshMembersView(1).catch(handleLoadError);
+    }, 250);
+}
+
+function handleLoadError(err) {
+    console.error(err);
+    alert("Failed to load members");
+    if (membersEmptyState) {
+        membersEmptyState.style.display = "block";
+        membersEmptyState.textContent = "Unable to load members right now.";
+    }
+    if (membersPageInfo) {
+        membersPageInfo.textContent = "Unable to load members right now.";
+    }
 }
 
 window.openEditModal = function (id, name, phone, address, photoUrl, gender, department) {
@@ -425,7 +524,7 @@ window.closeEditModal = function () {
 
 const editMemberForm = document.getElementById("editMemberForm");
 if (editMemberForm) {
-    editMemberForm.addEventListener("submit", async function (e) {
+    editMemberForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
         const name = document.getElementById("edit_name").value;
@@ -453,22 +552,25 @@ if (editMemberForm) {
                 body: JSON.stringify({ name, gender, departments, phone, address, photo_url }),
             });
 
-            if (res.ok) {
-                alert("Member updated successfully");
-                closeEditModal();
-                fetchMembers();
-            } else {
-                alert("Failed to update member");
+            if (!res.ok) {
+                const error = await readJson(res);
+                throw new Error(error.error || error.message || "Failed to update member");
             }
+
+            alert("Member updated successfully");
+            closeEditModal();
+            await refreshMembersView(currentPage);
         } catch (err) {
             console.error(err);
-            alert("Server error");
+            alert(err.message || "Server error");
         }
     });
 }
 
 window.deleteMember = async function (id) {
-    if (!confirm("Are you sure you want to delete this member? All related data (attendance, contributions) will also be deleted.")) return;
+    if (!confirm("Are you sure you want to delete this member? All related data (attendance, contributions) will also be deleted.")) {
+        return;
+    }
 
     try {
         const res = await fetch(`/api/members/${id}`, {
@@ -476,16 +578,16 @@ window.deleteMember = async function (id) {
             headers: { Authorization: `Bearer ${token}` },
         });
 
-        if (res.ok) {
-            alert("Member deleted successfully");
-            fetchMembers();
-        } else {
-            const error = await res.json();
-            alert(`Failed to delete member: ${error.message || error.error}`);
+        if (!res.ok) {
+            const error = await readJson(res);
+            throw new Error(error.message || error.error || "Failed to delete member");
         }
+
+        alert("Member deleted successfully");
+        await refreshMembersView(currentPage);
     } catch (err) {
         console.error(err);
-        alert(`Server error: ${err.message}`);
+        alert(err.message || "Server error");
     }
 };
 
@@ -514,16 +616,16 @@ async function removeMemberFromDepartment(member) {
             }),
         });
 
-        if (res.ok) {
-            alert(`${member.name} was removed from ${activeDepartment}.`);
-            fetchMembers();
-        } else {
-            const error = await res.json().catch(() => ({}));
-            alert(error.error || error.message || "Failed to remove member from department");
+        if (!res.ok) {
+            const error = await readJson(res);
+            throw new Error(error.error || error.message || "Failed to remove member from department");
         }
+
+        alert(`${member.name} was removed from ${activeDepartment}.`);
+        await refreshMembersView(currentPage);
     } catch (err) {
         console.error(err);
-        alert("Server error");
+        alert(err.message || "Server error");
     }
 }
 
@@ -550,22 +652,23 @@ if (addMemberForm) {
                 body: JSON.stringify({ name, gender, departments, phone, address, photo_url }),
             });
 
-            if (res.ok) {
-                alert("Member added successfully");
-                addMemberForm.reset();
-                syncDepartmentFormDefaults();
-                fetchMembers();
-            } else {
-                alert("Failed to add member");
+            if (!res.ok) {
+                const error = await readJson(res);
+                throw new Error(error.error || error.message || "Failed to add member");
             }
+
+            alert("Member added successfully");
+            addMemberForm.reset();
+            syncDepartmentFormDefaults();
+            await refreshMembersView(1);
         } catch (err) {
             console.error(err);
-            alert("Server error");
+            alert(err.message || "Server error");
         }
     });
 }
 
-window.addEventListener("click", function (e) {
+window.addEventListener("click", (e) => {
     const modal = document.getElementById("editModal");
     if (e.target === modal) {
         closeEditModal();
@@ -599,17 +702,43 @@ openQrImageBtn?.addEventListener("click", () => {
 
 closeQrModalBtn?.addEventListener("click", closeQrModal);
 
-fetchMembers().catch((err) => {
-    console.error(err);
-    alert("Failed to load members");
-    if (membersEmptyState) {
-        membersEmptyState.style.display = "block";
-        membersEmptyState.textContent = "Unable to load members right now.";
-    }
-});
-
 window.addEventListener("click", (event) => {
     if (event.target === qrModal) {
         closeQrModal();
     }
 });
+
+filterNameInput?.addEventListener("input", queueFilterRefresh);
+filterAddressInput?.addEventListener("input", queueFilterRefresh);
+filterDepartmentSelect?.addEventListener("change", () => {
+    activeDepartment = filterDepartmentSelect.value || MASTER_LABEL;
+    currentPage = 1;
+    refreshMembersView(1).catch(handleLoadError);
+});
+
+clearFiltersBtn?.addEventListener("click", () => {
+    if (filterNameInput) filterNameInput.value = "";
+    if (filterAddressInput) filterAddressInput.value = "";
+    activeDepartment = MASTER_LABEL;
+    if (filterDepartmentSelect) filterDepartmentSelect.value = "";
+    currentPage = 1;
+    refreshMembersView(1).catch(handleLoadError);
+});
+
+pageSizeSelect?.addEventListener("change", () => {
+    currentPageSize = Number(pageSizeSelect.value || 20);
+    currentPage = 1;
+    fetchMembers(1).catch(handleLoadError);
+});
+
+prevPageBtn?.addEventListener("click", () => {
+    if (currentPage <= 1) return;
+    fetchMembers(currentPage - 1).catch(handleLoadError);
+});
+
+nextPageBtn?.addEventListener("click", () => {
+    if (currentPage >= totalPages) return;
+    fetchMembers(currentPage + 1).catch(handleLoadError);
+});
+
+refreshMembersView(1).catch(handleLoadError);

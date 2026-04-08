@@ -53,20 +53,26 @@ app.use(cors({
 // Keep HTML and service worker assets fresh during preview/deployment sharing.
 app.use((req, res, next) => {
     const requestPath = req.path || "";
-    const shouldDisableCache =
-        requestPath.startsWith("/api/") ||
-        requestPath === "/" ||
-        requestPath.endsWith(".html") ||
+    const isApiRequest = requestPath.startsWith("/api/");
+    const isHtmlRequest = requestPath === "/" || requestPath.endsWith(".html");
+    const isMutableStaticAsset =
         requestPath.startsWith("/js/") ||
         requestPath.startsWith("/css/") ||
         requestPath === "/sw.js" ||
         requestPath === "/manifest.webmanifest" ||
         requestPath === "/js/pwa.js";
+    const isVersionedAsset =
+        requestPath.startsWith("/assets/") ||
+        /\.(png|jpg|jpeg|gif|svg|webp|ico)$/i.test(requestPath);
 
-    if (shouldDisableCache) {
+    if (isApiRequest || isHtmlRequest) {
         res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
         res.setHeader("Pragma", "no-cache");
         res.setHeader("Expires", "0");
+    } else if (isMutableStaticAsset) {
+        res.setHeader("Cache-Control", "public, max-age=300, stale-while-revalidate=86400");
+    } else if (isVersionedAsset) {
+        res.setHeader("Cache-Control", "public, max-age=2592000, immutable");
     }
 
     next();

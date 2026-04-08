@@ -1,5 +1,13 @@
 const Member = require("../models/memberModel");
 
+function hasOwnQuery(query, key) {
+    return Object.prototype.hasOwnProperty.call(query, key);
+}
+
+function parseBooleanFlag(value) {
+    return value === true || value === "true" || value === "1" || value === 1;
+}
+
 exports.createMember = async (req, res) => {
     try {
         const { name, gender, department, departments, phone, address, photo_url } = req.body;
@@ -14,7 +22,63 @@ exports.createMember = async (req, res) => {
 exports.getMembers = async (req, res) => {
     try {
         const { id: userId, role } = req.user;
+        const {
+            mode,
+            page,
+            pageSize,
+            search,
+            address,
+            department,
+            hasPhone,
+            limit,
+        } = req.query;
+
+        if (mode === "summary") {
+            const rows = await Member.getMemberSummaries({
+                search,
+                address,
+                department,
+                hasPhone: parseBooleanFlag(hasPhone),
+                limit,
+            });
+            return res.json(rows);
+        }
+
+        const shouldPaginate =
+            hasOwnQuery(req.query, "page") ||
+            hasOwnQuery(req.query, "pageSize") ||
+            hasOwnQuery(req.query, "search") ||
+            hasOwnQuery(req.query, "address") ||
+            hasOwnQuery(req.query, "department");
+
+        if (shouldPaginate) {
+            const result = await Member.getMembersPage({
+                page,
+                pageSize,
+                search,
+                address,
+                department,
+            });
+            return res.json({
+                ...result,
+                filters: {
+                    search: String(search || "").trim(),
+                    address: String(address || "").trim(),
+                    department: String(department || "").trim(),
+                },
+            });
+        }
+
         const rows = await Member.getMembersByUser(userId, role);
+        res.json(rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+exports.getDepartmentSummary = async (req, res) => {
+    try {
+        const rows = await Member.getDepartmentSummary();
         res.json(rows);
     } catch (err) {
         res.status(500).json({ error: err.message });

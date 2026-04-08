@@ -388,7 +388,7 @@ function getFilteredMembers(){
 // Fetch members and refresh department list
 async function refreshMembers(){
     try {
-        const res = await fetch('/api/members', {
+        const res = await fetch('/api/members?mode=summary&limit=5000', {
             headers: { "Authorization": `Bearer ${token}` }
         });
         if(res.status === 401){
@@ -518,7 +518,15 @@ async function loadAttendance(){
         if (!allMembers.length) {
             await refreshMembers();
         }
-        const aRes = await fetch('/api/attendance', {headers: {Authorization: `Bearer ${token}`}});
+        const attendanceParams = new URLSearchParams({
+            year: String(year),
+            month: String(month + 1),
+            limit: "10000"
+        });
+        if (activeDepartment !== MASTER_LABEL) {
+            attendanceParams.set('department', activeDepartment);
+        }
+        const aRes = await fetch(`/api/attendance?${attendanceParams.toString()}`, {headers: {Authorization: `Bearer ${token}`}});
         if (aRes.status === 401) {
             alert('Session expired. Please login again.');
             localStorage.removeItem('token');
@@ -764,4 +772,3 @@ refreshMembers().then(loadAttendance);
 <script src="js/pwa.js"></script>
 </body>
 </html>
-

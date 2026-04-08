@@ -1,6 +1,10 @@
 const attendanceModel = require('../models/attendanceModel');
 const memberModel = require('../models/memberModel');
 
+function hasOwnQuery(query, key) {
+    return Object.prototype.hasOwnProperty.call(query, key);
+}
+
 function extractAttendanceCode(input) {
     const raw = String(input || '').trim();
     if (!raw) return '';
@@ -110,11 +114,38 @@ exports.getAttendanceTrends = async (req, res) => {
 exports.getAttendanceRecords = async (req, res) => {
     try {
         const memberId = req.query.memberId ? parseInt(req.query.memberId, 10) : null;
-        if (memberId) {
+        const { year, month, department, page, pageSize, limit } = req.query;
+        const shouldPaginate = hasOwnQuery(req.query, "page") || hasOwnQuery(req.query, "pageSize");
+
+        if (memberId && !year && !month && !department && !shouldPaginate) {
             const records = await attendanceModel.getByMember(memberId);
             return res.json(records);
         }
-        const records = await attendanceModel.getAllRecords(req.user);
+
+        if (shouldPaginate) {
+            const records = await attendanceModel.getRecordsPage({
+                page,
+                pageSize,
+                memberId,
+                year,
+                month,
+                department,
+            });
+            return res.json(records);
+        }
+
+        if (year || month || department || memberId) {
+            const records = await attendanceModel.getRecords({
+                memberId,
+                year,
+                month,
+                department,
+                limit,
+            });
+            return res.json(records);
+        }
+
+        const records = await attendanceModel.getAllRecords(req.user, { limit });
         res.json(records);
     } catch (err) {
         res.status(500).json({ error: err.message });

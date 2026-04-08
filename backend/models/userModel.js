@@ -39,7 +39,7 @@ const getUserByPhone = async (phone) => {
 // -----------------------------
 // Create New User
 // -----------------------------
-const createUser = async ({ name, phone, password, role = "user" }) => {
+const createUser = async ({ name, phone, password, role = "normaluser" }) => {
     const hash = await bcrypt.hash(password, 10);
     const [result] = await db.execute(
         "INSERT INTO users (name, phone, password, role, is_approved, is_blocked) VALUES (?, ?, ?, ?, ?, ?)",

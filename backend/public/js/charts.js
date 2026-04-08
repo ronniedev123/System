@@ -190,7 +190,7 @@ async function loadAttendanceChart() {
 
     try {
         // Fetch all members
-        const membersRes = await fetch('/api/members', {
+        const membersRes = await fetch('/api/members?mode=summary&limit=5000', {
             headers: { "Authorization": `Bearer ${token}` }
         });
         if (!membersRes.ok) throw new Error('Failed to load members');
@@ -201,7 +201,7 @@ async function loadAttendanceChart() {
         const memberIdSet = new Set(filteredMembers.map((m) => String(m.id)));
         
         // Fetch attendance records
-        const attendanceRes = await fetch('/api/attendance', {
+        const attendanceRes = await fetch(`/api/attendance?year=${selectedYear}&limit=10000`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
         if (!attendanceRes.ok) throw new Error('Failed to load attendance');
@@ -460,14 +460,14 @@ async function downloadAllReport() {
     }
     
     try {
-        const membersRes = await fetch('/api/members', {
+        const membersRes = await fetch('/api/members?mode=summary&limit=5000', {
             headers: { "Authorization": `Bearer ${token}` }
         });
         const members = await membersRes.json();
         const filteredMembers = getFilteredMembers(members);
         const memberIdSet = new Set(filteredMembers.map((m) => String(m.id)));
         
-        const attendanceRes = await fetch('/api/attendance', {
+        const attendanceRes = await fetch(`/api/attendance?year=${new Date().getFullYear()}&limit=10000`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
         const records = await attendanceRes.json();
@@ -517,14 +517,14 @@ async function downloadAverageReport() {
     }
     
     try {
-        const membersRes = await fetch('/api/members', {
+        const membersRes = await fetch('/api/members?mode=summary&limit=5000', {
             headers: { "Authorization": `Bearer ${token}` }
         });
         const members = await membersRes.json();
         const filteredMembers = getFilteredMembers(members);
         const memberIdSet = new Set(filteredMembers.map((m) => String(m.id)));
         
-        const attendanceRes = await fetch('/api/attendance', {
+        const attendanceRes = await fetch(`/api/attendance?year=${new Date().getFullYear()}&limit=10000`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
         const records = await attendanceRes.json();
