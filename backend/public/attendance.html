@@ -28,6 +28,74 @@
     margin-bottom: 12px;
 }
 
+.attendance-table-wrapper {
+    max-height: min(70vh, 720px);
+    overflow: auto;
+    overscroll-behavior: contain;
+}
+
+.attendance-report-table {
+    min-width: max(100%, 720px);
+}
+
+.attendance-report-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+}
+
+.attendance-report-table th:first-child,
+.attendance-report-table td:first-child {
+    position: sticky;
+    left: 0;
+}
+
+.attendance-report-table th:first-child {
+    z-index: 4;
+    box-shadow: 1px 0 0 var(--border);
+}
+
+.attendance-report-table td:first-child {
+    z-index: 1;
+    box-shadow: 1px 0 0 var(--border);
+}
+
+.attendance-report-table tbody tr:nth-child(odd) td:first-child {
+    background: var(--card-strong);
+}
+
+.attendance-report-table tbody tr:nth-child(even) td:first-child {
+    background: rgba(244, 249, 255, 0.72);
+}
+
+.attendance-report-table tbody tr:hover td:first-child {
+    background: rgba(15, 110, 207, 0.06);
+}
+
+.attendance-report-table .attendance-yes,
+.attendance-report-table .attendance-no,
+.attendance-report-table .attendance-pending {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    font-size: 1.05rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.attendance-report-table .attendance-yes {
+    color: #14804a;
+}
+
+.attendance-report-table .attendance-no {
+    color: #c62828;
+}
+
+.attendance-report-table .attendance-pending {
+    color: #d38c15;
+}
+
 .suggestion-item {
     padding: 10px 12px;
     cursor: pointer;
@@ -123,8 +191,8 @@
             <h3 id="reportTitle">Attendance Summary</h3>
             <p id="adminHint" class="status-chip" style="display:none;">Admins: Click any cell to edit attendance</p>
 
-            <div class="table-wrapper">
-                <table>
+            <div class="table-wrapper attendance-table-wrapper">
+                <table class="attendance-report-table">
                     <thead id="attendanceHead"></thead>
                     <tbody id="attendanceTable"></tbody>
                 </table>

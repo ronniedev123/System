@@ -8,39 +8,54 @@
 <link rel="stylesheet" href="css/church-theme.css">
 <style>
 body {
+    margin: 0;
     font-family: "Manrope", "Segoe UI", sans-serif;
+    overflow-x: hidden;
 }
 
-.page {
-    max-width: 1280px;
+.app-shell {
+    min-height: 100vh;
 }
 
-.topbar {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    gap: 18px;
-    padding: 20px 22px;
-    border-radius: 30px;
-    background: rgba(255, 255, 255, 0.92);
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow-soft);
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    width: 280px;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98);
+    border-right: 1px solid var(--border);
+    box-shadow: 2px 0 20px rgba(12, 32, 64, 0.05);
+    z-index: 100;
+    transition: transform 0.25s ease;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
-.brand {
+.sidebar-header {
+    padding: 28px 22px 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.sidebar-brand {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
+    text-decoration: none;
+    color: inherit;
 }
 
 .brand-mark {
-    width: 62px;
-    height: 62px;
-    border-radius: 20px;
+    width: 58px;
+    height: 58px;
+    border-radius: 18px;
     overflow: hidden;
     border: 1px solid var(--border);
     box-shadow: var(--shadow-soft);
     background: #ffffff;
+    flex-shrink: 0;
 }
 
 .brand-mark img {
@@ -49,20 +64,232 @@ body {
     object-fit: cover;
 }
 
-.brand-copy h1 {
+.brand-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.brand-copy strong {
+    font-size: 1.1rem;
+    line-height: 1.1;
+    color: var(--text);
+}
+
+.brand-copy small {
+    color: var(--muted);
+    font-size: 0.84rem;
+}
+
+.sidebar-nav {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 20px 16px;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 18px;
+    text-decoration: none;
+    color: var(--muted);
+    font-weight: 600;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.sidebar-link:hover {
+    background: rgba(15, 110, 207, 0.08);
+    color: var(--secondary-dark);
+    transform: translateX(2px);
+}
+
+.sidebar-link.active {
+    background: linear-gradient(135deg, rgba(11, 154, 115, 0.14), rgba(15, 110, 207, 0.12));
+    color: var(--primary-dark);
+}
+
+.sidebar-link-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 12px;
+    background: rgba(15, 110, 207, 0.08);
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.sidebar-footer {
+    padding: 22px 20px 24px;
+    border-top: 1px solid var(--border);
+    background: rgba(248, 251, 255, 0.82);
+}
+
+.user-mini {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.user-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(15, 110, 207, 0.16), rgba(11, 154, 115, 0.16));
+    color: var(--secondary-dark);
+    font-size: 1.1rem;
+    font-weight: 800;
+}
+
+.user-info p {
     margin: 0;
-    font-size: clamp(1.85rem, 3vw, 2.7rem);
+    font-weight: 700;
+    color: var(--text);
+}
+
+.user-info span {
+    color: var(--muted);
+    font-size: 0.82rem;
+}
+
+.logout-sidebar-btn {
+    width: 100%;
+    min-height: 46px;
+    border: 1px solid rgba(185, 28, 28, 0.16);
+    border-radius: 16px;
+    background: rgba(255, 238, 238, 0.75);
+    color: #b91c1c;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.app-main {
+    min-height: 100vh;
+    margin-left: 280px;
+    width: calc(100% - 280px);
+}
+
+.dashboard-topbar {
+    position: sticky;
+    top: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    padding: 18px 32px;
+    background: rgba(244, 249, 255, 0.92);
+    border-bottom: 1px solid rgba(15, 110, 207, 0.08);
+    backdrop-filter: blur(12px);
+    z-index: 90;
+}
+
+.topbar-title-group {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.topbar-kicker {
+    margin: 0 0 6px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.74rem;
+    font-weight: 700;
+}
+
+.page-title {
+    margin: 0;
+    font-size: clamp(1.6rem, 3vw, 2.3rem);
     line-height: 1;
 }
 
-.brand-copy p {
-    margin: 6px 0 0;
-    color: var(--muted);
-    font-size: 0.98rem;
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
 }
 
-.topbar-actions {
-    justify-self: end;
+.menu-toggle {
+    display: none;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: #ffffff;
+    font-size: 1.4rem;
+    cursor: pointer;
+}
+
+.page {
+    max-width: 1280px;
+    width: 100%;
+    padding: 28px 32px 48px;
+}
+
+.workspace-shell[hidden],
+#dashboardHome[hidden] {
+    display: none !important;
+}
+
+.workspace-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.workspace-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 22px;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-soft);
+}
+
+.workspace-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.workspace-copy strong {
+    color: var(--text);
+}
+
+.workspace-copy span {
+    color: var(--muted);
+    font-size: 0.92rem;
+}
+
+.workspace-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.workspace-frame {
+    width: 100%;
+    min-height: calc(100vh - 210px);
+    border: none;
+    border-radius: 28px;
+    background: #ffffff;
+    box-shadow: var(--shadow);
 }
 
 .hero-shell {
@@ -399,8 +626,37 @@ body {
 }
 
 @media (max-width: 760px) {
-    .topbar {
-        grid-template-columns: 1fr;
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+    .sidebar.mobile-open {
+        transform: translateX(0);
+    }
+
+    .app-main {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .dashboard-topbar {
+        padding: 16px 18px;
+    }
+
+    .menu-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .page {
+        padding: 20px 18px 36px;
+    }
+
+    .workspace-toolbar,
+    .workspace-actions {
+        flex-direction: column;
+        align-items: flex-start;
     }
 
     .hero-copy,
@@ -417,7 +673,8 @@ body {
     .stats-heading,
     .panel-topline,
     .slide-footer,
-    .slide-visual {
+    .slide-visual,
+    .dashboard-topbar {
         flex-direction: column;
         align-items: flex-start;
     }
@@ -430,24 +687,50 @@ body {
 <meta name="apple-mobile-web-app-title" content="Church App">
 <link rel="apple-touch-icon" href="assets/icon-192.png"></head>
 <body class="church-theme">
-<div class="page">
-    <div class="topbar">
-        <button class="btn btn-primary" onclick="location.href='index.html'">&larr; Back</button>
+<div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a class="sidebar-brand" href="dashboard.html">
+                <span class="brand-mark">
+                    <img src="assets/logo.jpeg" alt="System logo">
+                </span>
+                <span class="brand-copy">
+                    <strong>Church Dashboard</strong>
+                    <small>Ministry command center</small>
+                </span>
+            </a>
+        </div>
 
-        <div class="brand">
-            <div class="brand-mark">
-                <img src="assets/logo.jpeg" alt="System logo">
+        <nav class="sidebar-nav" id="sidebarNav" aria-label="Primary"></nav>
+
+        <div class="sidebar-footer">
+            <div class="user-mini">
+                <div id="sidebarAvatar" class="user-avatar">C</div>
+                <div class="user-info">
+                    <p id="sidebarUserName">Church Team</p>
+                    <span id="sidebarUserRole">Signed in</span>
+                </div>
             </div>
-            <div class="brand-copy">
-                <h1>Church Dashboard</h1>
+            <button id="logoutSidebarBtn" class="logout-sidebar-btn" type="button">Logout</button>
+        </div>
+    </aside>
+
+    <main class="app-main">
+        <div class="dashboard-topbar">
+            <div class="topbar-title-group">
+                <button id="mobileMenuToggle" class="menu-toggle" type="button" aria-label="Open navigation">&#9776;</button>
+                <div>
+                    <p id="topbarKicker" class="topbar-kicker">Dashboard</p>
+                    <h1 id="pageTitle" class="page-title">Church Dashboard</h1>
+                </div>
+            </div>
+            <div class="topbar-actions">
+                <div id="welcomeText" class="welcome-pill">Welcome</div>
             </div>
         </div>
 
-        <div class="topbar-actions">
-            <div id="welcomeText" class="welcome-pill">Welcome</div>
-            <button id="logoutBtn" class="btn btn-danger">Logout</button>
-        </div>
-    </div>
+        <div class="page">
+        <div id="dashboardHome">
 
     <section class="hero-shell">
         <div class="hero-copy">
@@ -604,10 +887,27 @@ body {
             <section class="mini-panel">
                 <h3>My Attendance Report</h3>
                 <p class="muted">Open your personal attendance summary and graphs anytime.</p>
-                <button class="btn btn-primary" onclick="window.location.href='member-graph.html?self=1'">View My Report</button>
+                <a class="btn btn-primary dashboard-inline-link" href="member-graph.html?self=1" data-label="My Attendance">View My Report</a>
             </section>
         </div>
     </section>
+        </div>
+
+        <section id="workspaceShell" class="workspace-shell" hidden>
+            <div class="workspace-toolbar">
+                <div class="workspace-copy">
+                    <strong id="workspaceTitle">Workspace</strong>
+                    <span id="workspaceSubtitle">The selected page opens here while the sidebar stays fixed.</span>
+                </div>
+                <div class="workspace-actions">
+                    <a id="workspaceOpenLink" class="btn btn-outline" href="#" target="_blank" rel="noopener">Open In New Tab</a>
+                    <button id="workspaceBackBtn" class="btn btn-primary" type="button">Back To Dashboard</button>
+                </div>
+            </div>
+            <iframe id="workspaceFrame" class="workspace-frame" title="Dashboard workspace"></iframe>
+        </section>
+        </div>
+    </main>
 </div>
 
 <script>
@@ -816,6 +1116,44 @@ let highlightSlides = [];
 
 let currentSlideIndex = 0;
 let slideInterval = null;
+let currentRole = "user";
+const HOME_ROUTE = "dashboard.html";
+const navigationByRole = {
+    admin: [
+        { href: "dashboard.html", icon: "📊", label: "Dashboard" },
+        { href: "departments.html", icon: "👥", label: "Church Members" },
+        { href: "users.html", icon: "🧑‍💼", label: "Manage Users" },
+        { href: "events.html", icon: "📅", label: "Events" },
+        { href: "announcements.html", icon: "📢", label: "Announcements" },
+        { href: "attendance.html", icon: "✅", label: "Attendance" },
+        { href: "graphs.html", icon: "📈", label: "Reports" },
+        { href: "donations.html", icon: "💰", label: "Contributions" },
+        { href: "weekly-programs.html", icon: "🗓️", label: "Weekly Programs" },
+        { href: "worship-songs.html", icon: "🎵", label: "Worship Songs" },
+        { href: "church-album.html", icon: "🖼️", label: "Church Album" }
+    ],
+    user: [
+        { href: "dashboard.html", icon: "📊", label: "Dashboard" },
+        { href: "departments.html", icon: "👥", label: "Church Members" },
+        { href: "events.html", icon: "📅", label: "Events" },
+        { href: "announcements.html", icon: "📢", label: "Announcements" },
+        { href: "attendance.html", icon: "✅", label: "Attendance" },
+        { href: "graphs.html", icon: "📈", label: "Reports" },
+        { href: "donations.html", icon: "💰", label: "Contributions" },
+        { href: "weekly-programs.html", icon: "🗓️", label: "Weekly Programs" },
+        { href: "worship-songs.html", icon: "🎵", label: "Worship Songs" },
+        { href: "church-album.html", icon: "🖼️", label: "Church Album" }
+    ],
+    normaluser: [
+        { href: "dashboard.html", icon: "📊", label: "Dashboard" },
+        { href: "donations.html", icon: "💰", label: "Contributions" },
+        { href: "weekly-programs.html", icon: "🗓️", label: "Weekly Programs" },
+        { href: "worship-songs.html", icon: "🎵", label: "Worship Songs" },
+        { href: "church-album.html", icon: "🖼️", label: "Church Album" },
+        { href: "my-qr-pass.html", icon: "🔳", label: "My QR Pass" },
+        { href: "member-graph.html?self=1", icon: "📈", label: "My Attendance" }
+    ]
+};
 
 function renderSlide(index) {
     if (!highlightSlides.length) return;
@@ -870,19 +1208,131 @@ function restartSlideInterval() {
     }, 5000);
 }
 
-function setWelcomeText(payload) {
-    const welcomeEl = document.getElementById("welcomeText");
-    if (!welcomeEl) return;
-
+function getRoleLabel(role) {
     const roleLabels = {
         admin: "Administrator",
         normaluser: "Member",
         user: "Team User"
     };
 
+    return roleLabels[role] || "Church Team";
+}
+
+function setWelcomeText(payload) {
+    const welcomeEl = document.getElementById("welcomeText");
+    if (!welcomeEl) return;
+
     const displayName = payload.name || payload.email || "Church Team";
-    const roleLabel = roleLabels[payload.role] || "Church Team";
+    const roleLabel = getRoleLabel(payload.role);
     welcomeEl.textContent = `${displayName} • ${roleLabel}`;
+}
+
+function setSidebarUser(payload) {
+    document.getElementById("sidebarUserName").textContent = payload.name || payload.email || "Church Team";
+    document.getElementById("sidebarUserRole").textContent = getRoleLabel(payload.role);
+    document.getElementById("sidebarAvatar").textContent = String(payload.name || payload.email || "C").trim().charAt(0).toUpperCase();
+}
+
+function renderSidebar(role) {
+    const nav = document.getElementById("sidebarNav");
+    if (!nav) return;
+
+    const currentPath = window.location.pathname.split("/").pop() || "dashboard.html";
+    const currentPathWithQuery = `${currentPath}${window.location.search}`;
+    const items = navigationByRole[role] || navigationByRole.user;
+
+    nav.innerHTML = items.map((item) => {
+        const matchesPath = item.href.split("?")[0] === currentPath;
+        const isActive = item.href.includes("?") ? item.href === currentPathWithQuery : matchesPath;
+
+        return `
+            <a class="sidebar-link ${isActive ? "active" : ""}" href="${item.href}" data-route="${item.href}" data-label="${item.label}">
+                <span class="sidebar-link-icon">${item.icon}</span>
+                <span>${item.label}</span>
+            </a>
+        `;
+    }).join("");
+}
+
+function closeSidebar() {
+    document.getElementById("sidebar")?.classList.remove("mobile-open");
+}
+
+function normalizeRoute(route) {
+    const url = new URL(route, window.location.href);
+    const currentFile = url.pathname.split("/").pop() || HOME_ROUTE;
+    return `${currentFile}${url.search}`;
+}
+
+function prettifyRoute(route) {
+    return normalizeRoute(route)
+        .replace(".html", "")
+        .replace(/\?.*$/, "")
+        .replace(/[-_]/g, " ")
+        .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function setTopbar(title, kicker) {
+    const titleEl = document.getElementById("pageTitle");
+    const kickerEl = document.getElementById("topbarKicker");
+    if (titleEl) titleEl.textContent = title;
+    if (kickerEl) kickerEl.textContent = kicker;
+}
+
+function setActiveSidebar(route) {
+    const normalizedRoute = normalizeRoute(route);
+    document.querySelectorAll(".sidebar-link").forEach((link) => {
+        const linkRoute = normalizeRoute(link.dataset.route || HOME_ROUTE);
+        const isActive = linkRoute === normalizedRoute;
+        link.classList.toggle("active", isActive);
+    });
+}
+
+function pauseSlides() {
+    if (slideInterval) {
+        clearInterval(slideInterval);
+        slideInterval = null;
+    }
+}
+
+function showDashboardHome() {
+    document.getElementById("dashboardHome").hidden = false;
+    document.getElementById("workspaceShell").hidden = true;
+    document.getElementById("workspaceFrame").src = "about:blank";
+    document.getElementById("workspaceFrame").dataset.currentRoute = "";
+    document.getElementById("workspaceOpenLink").setAttribute("href", HOME_ROUTE);
+    document.getElementById("workspaceTitle").textContent = "Workspace";
+    setTopbar("Church Dashboard", "Dashboard");
+    setActiveSidebar(HOME_ROUTE);
+    restartSlideInterval();
+    closeSidebar();
+}
+
+function openWorkspace(route, label) {
+    if (!route || normalizeRoute(route) === HOME_ROUTE) {
+        showDashboardHome();
+        return;
+    }
+
+    const workspaceShell = document.getElementById("workspaceShell");
+    const dashboardHome = document.getElementById("dashboardHome");
+    const frame = document.getElementById("workspaceFrame");
+    const normalizedRoute = normalizeRoute(route);
+
+    dashboardHome.hidden = true;
+    workspaceShell.hidden = false;
+    document.getElementById("workspaceTitle").textContent = label || prettifyRoute(route);
+    document.getElementById("workspaceOpenLink").setAttribute("href", route);
+    setTopbar(label || prettifyRoute(route), "Workspace");
+    setActiveSidebar(normalizedRoute);
+    pauseSlides();
+
+    if (frame.dataset.currentRoute !== normalizedRoute) {
+        frame.dataset.currentRoute = normalizedRoute;
+        frame.src = route;
+    }
+
+    closeSidebar();
 }
 
 function initSlidesForRole(role) {
@@ -926,11 +1376,15 @@ if (!token) {
 } else {
     try {
         const payload = JSON.parse(atob(token.split(".")[1]));
+        currentRole = payload.role || "user";
         setWelcomeText(payload);
-        initSlidesForRole(payload.role);
-        showRolePanel(payload.role);
+        setSidebarUser(payload);
+        renderSidebar(currentRole);
+        initSlidesForRole(currentRole);
+        showRolePanel(currentRole);
+        showDashboardHome();
 
-        if (payload.role !== "normaluser") {
+        if (currentRole !== "normaluser") {
             loadStats();
         }
     } catch (err) {
@@ -1002,9 +1456,61 @@ async function loadNormalUpcomingEvents(token) {
 
 document.getElementById("prevSlideBtn").addEventListener("click", prevSlide);
 document.getElementById("nextSlideBtn").addEventListener("click", nextSlide);
-document.getElementById("logoutBtn").addEventListener("click", () => {
+document.getElementById("workspaceBackBtn").addEventListener("click", showDashboardHome);
+document.getElementById("logoutSidebarBtn").addEventListener("click", () => {
     localStorage.removeItem("token");
     window.location.href = "index.html";
+});
+document.getElementById("mobileMenuToggle").addEventListener("click", () => {
+    document.getElementById("sidebar")?.classList.toggle("mobile-open");
+});
+document.getElementById("sidebarNav").addEventListener("click", (event) => {
+    const link = event.target.closest(".sidebar-link");
+    if (!link) return;
+    event.preventDefault();
+    openWorkspace(link.dataset.route, link.dataset.label || link.textContent.trim());
+});
+document.querySelector(".page").addEventListener("click", (event) => {
+    const link = event.target.closest(".action-link, .dashboard-inline-link");
+    if (!link) return;
+    const href = link.getAttribute("href");
+    if (!href || href.startsWith("http")) return;
+    event.preventDefault();
+    const actionTitle = link.dataset.label || link.querySelector(".action-title")?.textContent || link.textContent.trim();
+    openWorkspace(href, actionTitle);
+});
+document.getElementById("workspaceFrame").addEventListener("load", () => {
+    const frame = document.getElementById("workspaceFrame");
+    try {
+        if (frame.contentWindow.location.href === "about:blank") {
+            return;
+        }
+        const loadedRoute = normalizeRoute(frame.contentWindow.location.href);
+        const navItems = navigationByRole[currentRole] || navigationByRole.user;
+        const navMatch = navItems.find((item) => normalizeRoute(item.href) === loadedRoute);
+        const title = navMatch?.label || prettifyRoute(loadedRoute);
+
+        if (loadedRoute === HOME_ROUTE) {
+            showDashboardHome();
+            return;
+        }
+
+        frame.dataset.currentRoute = loadedRoute;
+        document.getElementById("workspaceTitle").textContent = title;
+        document.getElementById("workspaceOpenLink").setAttribute("href", loadedRoute);
+        setTopbar(title, "Workspace");
+        setActiveSidebar(loadedRoute);
+    } catch (error) {
+        console.warn("Unable to sync workspace route", error);
+    }
+});
+document.addEventListener("click", (event) => {
+    const sidebar = document.getElementById("sidebar");
+    const toggleButton = document.getElementById("mobileMenuToggle");
+    if (!sidebar || !toggleButton) return;
+    if (window.innerWidth > 760) return;
+    if (sidebar.contains(event.target) || toggleButton.contains(event.target)) return;
+    closeSidebar();
 });
 </script>
 <script src="js/pwa.js"></script>
