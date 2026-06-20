@@ -64,6 +64,38 @@ function showInstallButton() {
   button.style.display = "inline-flex";
 }
 
+function ensureChurchUtilityBar() {
+  if (!document.body.classList.contains("church-theme")) return;
+  if (document.querySelector(".church-utility-bar")) return;
+  if (document.querySelector(".dashboard-topbar")) return;
+
+  const bar = document.createElement("div");
+  bar.className = "church-utility-bar";
+  bar.innerHTML = `
+    <a class="church-utility-brand" href="index.html" aria-label="Go to public homepage">
+      <img src="assets/logo.jpeg" alt="">
+      <span>
+        <strong>Umoja Main Altar</strong>
+        <small>Visitor help is one tap away</small>
+      </span>
+    </a>
+    <nav class="church-utility-nav" aria-label="Visitor shortcuts">
+      <a href="index.html#visit">Plan Visit</a>
+      <a href="index.html#testimonies">Testimonies</a>
+      <a href="index.html#contact">Contact</a>
+      <a href="tel:+254700000000">Call</a>
+    </nav>
+  `;
+
+  document.body.insertBefore(bar, document.body.firstChild);
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", ensureChurchUtilityBar);
+} else {
+  ensureChurchUtilityBar();
+}
+
 if ("serviceWorker" in navigator && !isPreviewHost(window.location.hostname)) {
   window.addEventListener("load", () => {
     navigator.serviceWorker

@@ -39,13 +39,18 @@ function buildAttendanceFilters({ memberId, memberIds, year, month, department }
 
   const normalizedDepartment = String(department || "").trim();
   if (normalizedDepartment && normalizedDepartment !== "All Members") {
-    if (normalizedDepartment === "Unassigned") {
-      conditions.push("(m.department IS NULL OR TRIM(m.department) = '')");
-    } else {
-      conditions.push("FIND_IN_SET(?, REPLACE(IFNULL(m.department, ''), ', ', ',')) > 0");
-      params.push(normalizedDepartment);
+        if (normalizedDepartment === "Unassigned") {
+            conditions.push("(m.department IS NULL OR TRIM(m.department) = '')");
+        } else {
+            if (db.dialect === "sqlite") {
+                conditions.push("(',' || REPLACE(IFNULL(m.department, ''), ', ', ',') || ',') LIKE ?");
+                params.push(`%,${normalizedDepartment},%`);
+            } else {
+                conditions.push("FIND_IN_SET(?, REPLACE(IFNULL(m.department, ''), ', ', ',')) > 0");
+                params.push(normalizedDepartment);
+            }
+        }
     }
-  }
 
   return {
     whereClause: conditions.length ? `WHERE ${conditions.join(" AND ")}` : "",

@@ -9,7 +9,7 @@
 <style>
 body {
     margin: 0;
-    font-family: "Manrope", "Segoe UI", sans-serif;
+    font-family: "Inter", "Segoe UI", sans-serif;
     overflow-x: hidden;
 }
 
@@ -21,17 +21,19 @@ body {
     position: fixed;
     top: 0;
     left: 0;
+    width: 286px;
+    height: 100vh;
+    opacity: 1;
+    visibility: visible;
+    overflow: hidden;
+    pointer-events: auto;
+    background: rgba(255, 255, 255, 0.96);
+    border-right: 1px solid var(--border);
+    box-shadow: 18px 0 42px rgba(15, 23, 42, 0.08);
+    transform: none;
+    z-index: 110;
     display: flex;
     flex-direction: column;
-    width: 280px;
-    height: 100vh;
-    background: rgba(255, 255, 255, 0.98);
-    border-right: 1px solid var(--border);
-    box-shadow: 2px 0 20px rgba(12, 32, 64, 0.05);
-    z-index: 100;
-    transition: transform 0.25s ease;
-    overflow-x: hidden;
-    overflow-y: auto;
 }
 
 .sidebar-header {
@@ -97,7 +99,7 @@ body {
     gap: 12px;
     width: 100%;
     padding: 12px 14px;
-    border-radius: 18px;
+    border-radius: 12px;
     text-decoration: none;
     color: var(--muted);
     font-weight: 600;
@@ -105,14 +107,14 @@ body {
 }
 
 .sidebar-link:hover {
-    background: rgba(15, 110, 207, 0.08);
-    color: var(--secondary-dark);
+    background: #f2f4f7;
+    color: var(--primary);
     transform: translateX(2px);
 }
 
 .sidebar-link.active {
-    background: linear-gradient(135deg, rgba(11, 154, 115, 0.14), rgba(15, 110, 207, 0.12));
-    color: var(--primary-dark);
+    background: #111827;
+    color: #ffffff;
 }
 
 .sidebar-link-icon {
@@ -121,8 +123,8 @@ body {
     justify-content: center;
     width: 32px;
     height: 32px;
-    border-radius: 12px;
-    background: rgba(15, 110, 207, 0.08);
+    border-radius: 10px;
+    background: #eef2ff;
     font-size: 1rem;
     flex-shrink: 0;
 }
@@ -130,7 +132,7 @@ body {
 .sidebar-footer {
     padding: 22px 20px 24px;
     border-top: 1px solid var(--border);
-    background: rgba(248, 251, 255, 0.82);
+    background: #f8fafc;
 }
 
 .user-mini {
@@ -177,8 +179,9 @@ body {
 
 .app-main {
     min-height: 100vh;
-    margin-left: 280px;
-    width: calc(100% - 280px);
+    margin-left: 286px;
+    width: calc(100% - 286px);
+    padding-left: 0;
 }
 
 .dashboard-topbar {
@@ -189,11 +192,12 @@ body {
     align-items: center;
     gap: 18px;
     padding: 18px 32px;
-    background: rgba(244, 249, 255, 0.92);
-    border-bottom: 1px solid rgba(15, 110, 207, 0.08);
+    background: rgba(17, 24, 39, 0.94);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
     z-index: 90;
+    color: #edf5ff;
 }
 
 .topbar-title-group {
@@ -204,7 +208,7 @@ body {
 
 .topbar-kicker {
     margin: 0 0 6px;
-    color: var(--muted);
+    color: #a5b4fc;
     text-transform: uppercase;
     letter-spacing: 0.12em;
     font-size: 0.74rem;
@@ -215,106 +219,74 @@ body {
     margin: 0;
     font-size: clamp(1.6rem, 3vw, 2.3rem);
     line-height: 1;
+    color: #ffffff;
 }
 
 .topbar-actions {
     display: flex;
     align-items: center;
     gap: 16px;
-}
+        color: #d9e6ff;
+    }
 
-.menu-toggle {
-    display: none;
-    width: 44px;
-    height: 44px;
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    background: #ffffff;
-    font-size: 1.4rem;
-    cursor: pointer;
-}
+    .menu-toggle {
+        display: none;
+        width: 44px;
+        height: 44px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: #11234d;
+        color: #edf5ff;
+        font-size: 1.4rem;
+        cursor: pointer;
+    }
 
-.page {
-    max-width: 1280px;
-    width: 100%;
-    padding: 28px 32px 48px;
-}
+    .welcome-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 16px;
+        border-radius: 999px;
+        background: rgba(59, 106, 180, 0.18);
+        color: #c9deff;
+        font-weight: 700;
+    }
 
-.workspace-shell[hidden],
-#dashboardHome[hidden] {
-    display: none !important;
-}
-
-.workspace-shell {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.workspace-toolbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    padding: 18px 22px;
-    border-radius: 24px;
-    background: rgba(255, 255, 255, 0.92);
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow-soft);
-}
-
-.workspace-copy {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.workspace-copy strong {
-    color: var(--text);
-}
-
-.workspace-copy span {
-    color: var(--muted);
-    font-size: 0.92rem;
-}
-
-.workspace-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.workspace-frame {
-    width: 100%;
-    min-height: calc(100vh - 210px);
-    border: none;
-    border-radius: 28px;
-    background: #ffffff;
-    box-shadow: var(--shadow);
-}
+    .page {
+        max-width: 1360px;
+        width: 100%;
+        padding: 30px 34px 56px;
+        background: transparent;
+        display: block;
+    }
 
 .hero-shell {
     display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(330px, 0.95fr);
-    gap: 22px;
+    grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.85fr);
+    gap: 18px;
     align-items: stretch;
-    margin-bottom: 26px;
+    margin-bottom: 18px;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    color: var(--text);
 }
 
 .hero-copy,
 .hero-stage {
     position: relative;
     overflow: hidden;
-    border-radius: 30px;
+    border-radius: 18px;
     border: 1px solid var(--border);
     box-shadow: var(--shadow);
 }
 
 .hero-copy {
-    padding: 36px;
+    padding: 34px;
     background:
-        radial-gradient(circle at top right, rgba(11, 154, 115, 0.12), transparent 28%),
-        linear-gradient(145deg, #ffffff, #eff7ff);
+        linear-gradient(135deg, rgba(37, 99, 235, 0.18), transparent 34%),
+        linear-gradient(145deg, #111827 0%, #172554 58%, #0f766e 100%);
+    color: #ffffff;
 }
 
 .hero-copy::after {
@@ -323,28 +295,29 @@ body {
     inset: auto -58px -70px auto;
     width: 220px;
     height: 220px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(15, 110, 207, 0.14), transparent 70%);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.08);
     pointer-events: none;
 }
 
 .eyebrow {
     margin-bottom: 18px;
-    background: var(--secondary-soft);
-    color: var(--secondary-dark);
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
 }
 
 .hero-copy h2 {
     margin: 0 0 16px;
-    max-width: 10ch;
-    font-size: clamp(2.25rem, 4vw, 3.5rem);
-    line-height: 1.02;
-    color: var(--text);
+    max-width: 13ch;
+    font-size: clamp(2.4rem, 4vw, 4rem);
+    line-height: 0.98;
+    color: #ffffff !important;
 }
 
 .hero-copy .hero-text {
     max-width: 58ch;
-    color: var(--muted);
+    color: #dbeafe !important;
     font-size: 1.02rem;
 }
 
@@ -357,41 +330,32 @@ body {
 
 .metric-tile {
     padding: 18px;
-    border-radius: 22px;
-    background: rgba(255, 255, 255, 0.86);
-    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.16) !important;
 }
 
 .metric-tile strong {
     display: block;
     font-size: 1.12rem;
-    color: var(--text);
+    color: #ffffff !important;
 }
 
 .metric-tile span {
     display: block;
     margin-top: 6px;
-    color: var(--muted);
+    color: #dbeafe !important;
     font-size: 0.88rem;
 }
 
 .hero-stage {
     min-height: 420px;
-    padding: 20px;
-    background:
-        radial-gradient(circle at 15% 18%, rgba(15, 110, 207, 0.14), transparent 24%),
-        linear-gradient(180deg, #f8fbff, #edf5ff);
+    padding: 18px;
+    background: #ffffff !important;
 }
 
 .slide-glow {
-    position: absolute;
-    inset: 12% auto auto 10%;
-    width: 220px;
-    height: 220px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(11, 154, 115, 0.14), transparent 68%);
-    filter: blur(8px);
-    pointer-events: none;
+    display: none;
 }
 
 .slide-card {
@@ -401,11 +365,11 @@ body {
     justify-content: space-between;
     height: 100%;
     padding: 24px;
-    border-radius: 26px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(246, 251, 255, 0.98));
-    color: var(--text);
-    border: 1px solid rgba(15, 110, 207, 0.08);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    border-radius: 14px;
+    background: #ffffff !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: none !important;
 }
 
 .slide-tag {
@@ -413,8 +377,8 @@ body {
     width: fit-content;
     padding: 8px 12px;
     border-radius: 999px;
-    background: var(--primary-soft);
-    color: var(--primary-dark);
+    background: #eef2ff;
+    color: #3730a3 !important;
     font-size: 0.78rem;
     font-weight: 800;
     text-transform: uppercase;
@@ -430,13 +394,18 @@ body {
 }
 
 .slide-icon {
-    font-size: 3rem;
+    width: 58px;
+    height: 58px;
+    border-radius: 16px;
+    background: #f2f4f7 !important;
+    color: var(--primary) !important;
+    font-size: 2rem;
     line-height: 1;
 }
 
 .slide-kicker {
     margin: 0 0 8px;
-    color: var(--muted);
+    color: #667085 !important;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     font-size: 0.8rem;
@@ -444,7 +413,7 @@ body {
 
 .slide-title {
     margin: 0;
-    color: var(--text);
+    color: var(--text) !important;
     font-size: clamp(1.7rem, 2vw, 2.2rem);
     line-height: 1.05;
 }
@@ -452,7 +421,7 @@ body {
 .slide-description {
     min-height: 72px;
     margin: 14px 0 0;
-    color: var(--muted);
+    color: #475467 !important;
 }
 
 .slide-points {
@@ -466,13 +435,14 @@ body {
     align-items: flex-start;
     gap: 10px;
     padding: 14px 16px;
-    border-radius: 18px;
-    background: rgba(234, 244, 255, 0.88);
-    color: var(--text);
+    border-radius: 12px;
+    background: #f8fafc !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border);
 }
 
 .slide-point strong {
-    color: var(--primary-dark);
+    color: var(--primary-dark) !important;
 }
 
 .slide-footer {
@@ -518,7 +488,7 @@ body {
 }
 
 .stats-shell {
-    margin-bottom: 26px;
+    margin-bottom: 18px;
 }
 
 .stats-heading {
@@ -544,14 +514,7 @@ body {
 }
 
 .stat::after {
-    content: "";
-    position: absolute;
-    width: 110px;
-    height: 110px;
-    right: -18px;
-    top: -18px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(15, 110, 207, 0.12), transparent 70%);
+    content: none;
 }
 
 .stat h3 {
@@ -559,8 +522,8 @@ body {
 }
 
 .role-panel {
-    padding: 28px;
-    border-radius: 30px;
+    padding: 24px;
+    border-radius: 18px;
 }
 
 .panel-topline {
@@ -583,8 +546,21 @@ body {
 
 .actions {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(235px, 1fr));
+    gap: 14px;
+}
+
+.action-link {
+    min-height: 168px;
+    border-radius: 14px;
+}
+
+.action-title {
+    color: var(--text) !important;
+}
+
+.action-text {
+    color: #475467 !important;
 }
 
 .normal-panels {
@@ -596,8 +572,8 @@ body {
 
 .mini-panel {
     padding: 20px;
-    border-radius: 24px;
-    background: linear-gradient(180deg, #ffffff, #f7fbff);
+    border-radius: 14px;
+    background: #ffffff;
     border: 1px solid var(--border);
     box-shadow: var(--shadow-soft);
 }
@@ -629,6 +605,10 @@ body {
 @media (max-width: 760px) {
     .sidebar {
         transform: translateX(-100%);
+        width: min(286px, 88vw);
+        opacity: 1;
+        visibility: visible;
+        height: 100vh;
     }
 
     .sidebar.mobile-open {
@@ -652,12 +632,6 @@ body {
 
     .page {
         padding: 20px 18px 36px;
-    }
-
-    .workspace-toolbar,
-    .workspace-actions {
-        flex-direction: column;
-        align-items: flex-start;
     }
 
     .hero-copy,
@@ -726,6 +700,11 @@ body {
                 </div>
             </div>
             <div class="topbar-actions">
+                <nav class="dashboard-visitor-links" aria-label="Visitor shortcuts">
+                    <a href="index.html#visit">Plan Visit</a>
+                    <a href="index.html#contact">Contact</a>
+                    <a href="tel:+254700000000">Call</a>
+                </nav>
                 <div id="welcomeText" class="welcome-pill">Welcome</div>
             </div>
         </div>
@@ -894,19 +873,6 @@ body {
     </section>
         </div>
 
-        <section id="workspaceShell" class="workspace-shell" hidden>
-            <div class="workspace-toolbar">
-                <div class="workspace-copy">
-                    <strong id="workspaceTitle">Workspace</strong>
-                    <span id="workspaceSubtitle">The selected page opens here while the sidebar stays fixed.</span>
-                </div>
-                <div class="workspace-actions">
-                    <a id="workspaceOpenLink" class="btn btn-outline" href="#" target="_blank" rel="noopener">Open In New Tab</a>
-                    <button id="workspaceBackBtn" class="btn btn-primary" type="button">Back To Dashboard</button>
-                </div>
-            </div>
-            <iframe id="workspaceFrame" class="workspace-frame" title="Dashboard workspace"></iframe>
-        </section>
         </div>
     </main>
 </div>
@@ -1265,14 +1231,6 @@ function normalizeRoute(route) {
     return `${currentFile}${url.search}`;
 }
 
-function prettifyRoute(route) {
-    return normalizeRoute(route)
-        .replace(".html", "")
-        .replace(/\?.*$/, "")
-        .replace(/[-_]/g, " ")
-        .replace(/\b\w/g, (char) => char.toUpperCase());
-}
-
 function setTopbar(title, kicker) {
     const titleEl = document.getElementById("pageTitle");
     const kickerEl = document.getElementById("topbarKicker");
@@ -1289,50 +1247,11 @@ function setActiveSidebar(route) {
     });
 }
 
-function pauseSlides() {
-    if (slideInterval) {
-        clearInterval(slideInterval);
-        slideInterval = null;
-    }
-}
-
 function showDashboardHome() {
     document.getElementById("dashboardHome").hidden = false;
-    document.getElementById("workspaceShell").hidden = true;
-    document.getElementById("workspaceFrame").src = "about:blank";
-    document.getElementById("workspaceFrame").dataset.currentRoute = "";
-    document.getElementById("workspaceOpenLink").setAttribute("href", HOME_ROUTE);
-    document.getElementById("workspaceTitle").textContent = "Workspace";
     setTopbar("Church Dashboard", "Dashboard");
     setActiveSidebar(HOME_ROUTE);
     restartSlideInterval();
-    closeSidebar();
-}
-
-function openWorkspace(route, label) {
-    if (!route || normalizeRoute(route) === HOME_ROUTE) {
-        showDashboardHome();
-        return;
-    }
-
-    const workspaceShell = document.getElementById("workspaceShell");
-    const dashboardHome = document.getElementById("dashboardHome");
-    const frame = document.getElementById("workspaceFrame");
-    const normalizedRoute = normalizeRoute(route);
-
-    dashboardHome.hidden = true;
-    workspaceShell.hidden = false;
-    document.getElementById("workspaceTitle").textContent = label || prettifyRoute(route);
-    document.getElementById("workspaceOpenLink").setAttribute("href", route);
-    setTopbar(label || prettifyRoute(route), "Workspace");
-    setActiveSidebar(normalizedRoute);
-    pauseSlides();
-
-    if (frame.dataset.currentRoute !== normalizedRoute) {
-        frame.dataset.currentRoute = normalizedRoute;
-        frame.src = route;
-    }
-
     closeSidebar();
 }
 
@@ -1457,7 +1376,6 @@ async function loadNormalUpcomingEvents(token) {
 
 document.getElementById("prevSlideBtn").addEventListener("click", prevSlide);
 document.getElementById("nextSlideBtn").addEventListener("click", nextSlide);
-document.getElementById("workspaceBackBtn").addEventListener("click", showDashboardHome);
 document.getElementById("logoutSidebarBtn").addEventListener("click", () => {
     localStorage.removeItem("token");
     window.location.href = "index.html";
@@ -1468,42 +1386,14 @@ document.getElementById("mobileMenuToggle").addEventListener("click", () => {
 document.getElementById("sidebarNav").addEventListener("click", (event) => {
     const link = event.target.closest(".sidebar-link");
     if (!link) return;
-    event.preventDefault();
-    openWorkspace(link.dataset.route, link.dataset.label || link.textContent.trim());
+    closeSidebar();
 });
 document.querySelector(".page").addEventListener("click", (event) => {
     const link = event.target.closest(".action-link, .dashboard-inline-link");
     if (!link) return;
     const href = link.getAttribute("href");
     if (!href || href.startsWith("http")) return;
-    event.preventDefault();
-    const actionTitle = link.dataset.label || link.querySelector(".action-title")?.textContent || link.textContent.trim();
-    openWorkspace(href, actionTitle);
-});
-document.getElementById("workspaceFrame").addEventListener("load", () => {
-    const frame = document.getElementById("workspaceFrame");
-    try {
-        if (frame.contentWindow.location.href === "about:blank") {
-            return;
-        }
-        const loadedRoute = normalizeRoute(frame.contentWindow.location.href);
-        const navItems = navigationByRole[currentRole] || navigationByRole.user;
-        const navMatch = navItems.find((item) => normalizeRoute(item.href) === loadedRoute);
-        const title = navMatch?.label || prettifyRoute(loadedRoute);
-
-        if (loadedRoute === HOME_ROUTE) {
-            showDashboardHome();
-            return;
-        }
-
-        frame.dataset.currentRoute = loadedRoute;
-        document.getElementById("workspaceTitle").textContent = title;
-        document.getElementById("workspaceOpenLink").setAttribute("href", loadedRoute);
-        setTopbar(title, "Workspace");
-        setActiveSidebar(loadedRoute);
-    } catch (error) {
-        console.warn("Unable to sync workspace route", error);
-    }
+    closeSidebar();
 });
 document.addEventListener("click", (event) => {
     const sidebar = document.getElementById("sidebar");
@@ -1517,4 +1407,3 @@ document.addEventListener("click", (event) => {
 <script src="js/pwa.js"></script>
 </body>
 </html>
-

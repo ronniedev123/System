@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Donations</title>
+<link rel="stylesheet" href="css/styles.css">
+<style>
+body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; }
+table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
+th { background: #f2f2f2; }
+button { padding: 5px 10px; cursor: pointer; }
+#logoutBtn { float: right; background-color: #f44336; color: white; border: none; border-radius: 5px; }
+</style>
+</head>
+<body>
+<button id="backBtn" onclick="window.location.href='dashboard.html'" style="float:left; background-color:#2196f3; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; margin-right:10px;">← Back</button>
+<button id="logoutBtn">Logout</button>
+<h1>Donations</h1>
+
+<div id="donateFormDiv">
+<form id="donationForm">
+    <label for="member_name">Member Name</label>
+    <input type="text" id="member_name" placeholder="Enter member name" required />
+    <input type="number" id="amount" placeholder="Amount" required />
+    <input type="text" id="description" placeholder="Description" />
+    <button type="submit">Donate</button>
+</form>
+</div>
+
+<table>
+<thead><tr><th>ID</th><th>User</th><th>Amount</th><th>Description</th><th>Date</th><th>Actions</th></tr></thead>
+<tbody id="donationsTable"></tbody>
+</table>
+
+<script src="js/donations.js"></script>
+</body>
+</html>

@@ -1,0 +1,218 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Manrope:wght@400;500;600;700;800&display=swap");
+
+:root {
+    --church-bg: #f5efe4;
+    --church-surface: #fff8f0;
+    --church-border: rgba(116, 82, 41, 0.18);
+    --church-text: #2d2217;
+    --church-muted: #6f6154;
+    --church-wood: #7c4b24;
+    --church-wood-dark: #4d2d13;
+    --church-gold: #b98b3d;
+    --church-gold-soft: #fff2d1;
+    --church-shadow: 0 24px 58px rgba(58, 40, 27, 0.12);
+}
+
+body.church-theme {
+    position: relative;
+    background: linear-gradient(180deg, #fbf4ea 0%, #f3e4d2 45%, #e8d2b8 100%);
+    color: var(--church-text);
+    background-attachment: fixed;
+}
+
+body.church-theme::before,
+body.church-theme::after {
+    content: "";
+    position: fixed;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.7;
+}
+
+body.church-theme::before {
+    width: 420px;
+    height: 420px;
+    top: -150px;
+    right: -120px;
+    background: radial-gradient(circle, rgba(185, 139, 61, 0.16), transparent 70%);
+}
+
+body.church-theme::after {
+    width: 320px;
+    height: 320px;
+    left: -120px;
+    bottom: -100px;
+    background: radial-gradient(circle, rgba(69, 90, 84, 0.12), transparent 72%);
+}
+
+.church-theme .container,
+.church-theme .page {
+    position: relative;
+    z-index: 1;
+}
+
+.church-theme nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px;
+    background: rgba(255, 250, 243, 0.96);
+    border: 1px solid var(--church-border);
+    border-radius: 28px;
+    box-shadow: var(--church-shadow);
+}
+
+.church-theme nav a {
+    color: var(--church-wood-dark);
+    font-weight: 700;
+}
+
+.church-theme h1,
+.church-theme h2,
+.church-theme h3,
+.church-theme h4 {
+    color: var(--church-text);
+    text-shadow: 0 1px 6px rgba(95, 72, 51, 0.08);
+}
+
+.church-theme .card,
+.church-theme .dashboard,
+.church-theme .chart-box,
+.church-theme .section,
+.church-theme .modal-content,
+.church-theme .modal-panel,
+.church-theme .light-panel,
+.church-theme .report-panel,
+.church-theme .type-card,
+.church-theme .status-panel,
+.church-theme .album-tile,
+.church-theme .songs-folder-card,
+.church-theme .songs-audio-card {
+    background: linear-gradient(180deg, rgba(255, 250, 243, 0.98), rgba(247, 236, 224, 0.94));
+    border: 1px solid var(--church-border);
+    box-shadow: var(--church-shadow);
+}
+
+.church-theme .panel-chip,
+.church-theme .context-badge,
+.church-theme .status-chip {
+    background: var(--church-gold-soft);
+    color: var(--church-wood-dark);
+}
+
+.church-theme .panel-chip {
+    border-radius: 999px;
+    padding: 8px 16px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.church-theme .context-badge {
+    background: rgba(69, 90, 84, 0.08);
+    color: var(--church-wood-dark);
+}
+
+.church-theme .action-link,
+.church-theme .album-action-link,
+.church-theme .download-link {
+    display: block;
+    width: 100%;
+    padding: 24px;
+    border-radius: 28px;
+    background: linear-gradient(180deg, #fff7ed, #f6e2cb);
+    border: 1px solid var(--church-border);
+    color: var(--church-wood-dark) !important;
+    box-shadow: 0 20px 44px rgba(58, 40, 27, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.church-theme .action-link:hover,
+.church-theme .album-action-link:hover,
+.church-theme .download-link:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 24px 50px rgba(58, 40, 27, 0.12);
+}
+
+.church-theme .action-text,
+.church-theme .muted,
+.church-theme .note,
+.church-theme .field-help,
+.church-theme .page-intro {
+    color: var(--church-muted) !important;
+}
+
+.church-theme .action-icon,
+.church-theme .stat-badge {
+    background: linear-gradient(135deg, rgba(185, 139, 61, 0.18), rgba(69, 90, 84, 0.08));
+    color: var(--church-wood-dark);
+}
+
+.church-theme .status-inline,
+.church-theme .status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 18px;
+    background: var(--church-gold-soft);
+    color: var(--church-wood-dark);
+    font-weight: 700;
+}
+
+.church-theme .welcome-pill {
+    background: rgba(255, 244, 230, 0.96);
+    color: var(--church-text);
+    box-shadow: 0 14px 30px rgba(58, 40, 27, 0.06);
+}
+
+.church-theme .suggestion-item {
+    border-bottom: 1px solid rgba(139, 111, 85, 0.14);
+}
+
+.church-theme .suggestion-item:hover {
+    background: rgba(255, 238, 221, 0.78);
+}
+
+.church-theme .clickable-cell {
+    cursor: pointer;
+}
+
+.church-theme .clickable-cell.pending-cell {
+    cursor: progress;
+}
+
+.church-theme .summary-table th,
+.church-theme .summary-table td,
+.church-theme .report-table th,
+.church-theme .report-table td {
+    border-color: rgba(139, 111, 85, 0.18) !important;
+}
+
+.church-theme tbody tr:nth-child(even) {
+    background: rgba(255, 243, 233, 0.75);
+}
+
+.church-theme tbody tr:hover {
+    background: rgba(182, 136, 61, 0.08);
+}
+
+.church-theme .panel-chip,
+.church-theme .context-badge,
+.church-theme .stat-badge,
+.church-theme .status-inline {
+    background: linear-gradient(135deg, rgba(251, 238, 221, 0.95), rgba(255, 248, 240, 0.95));
+}
+
+.church-theme .action,
+.church-theme .action-button {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0;
+}
+
+.church-theme .action-link {
+    min-height: 100%;
+}

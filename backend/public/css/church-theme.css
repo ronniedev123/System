@@ -1,56 +1,120 @@
 :root {
-    --church-blue: #0f6ecf;
-    --church-blue-dark: #0a57a4;
-    --church-blue-soft: #eaf4ff;
-    --church-green: #0b9a73;
-    --church-green-soft: #e9fff8;
-    --church-gold: #f2ac2a;
-    --church-gold-soft: #fff5dc;
+    --church-blue: #123c69;
+    --church-blue-dark: #0a2a4a;
+    --church-blue-soft: #edf4fb;
+    --church-green: #087f7a;
+    --church-green-soft: #ecfdf5;
+    --church-gold: #c48a1d;
+    --church-gold-soft: #fffbeb;
     --church-paper: #ffffff;
-    --church-ink: #183456;
+    --church-ink: #172033;
+    --church-rose: #b44762;
 }
 
 body.church-theme {
     position: relative;
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.95)),
-        radial-gradient(circle at 8% 10%, rgba(15, 110, 207, 0.12), transparent 24%),
-        radial-gradient(circle at 92% 18%, rgba(11, 154, 115, 0.1), transparent 20%),
-        linear-gradient(180deg, #f8fbff, #eef4fb);
     color: var(--text);
-    background-attachment: fixed;
-}
-
-body.church-theme::before,
-body.church-theme::after {
-    content: "";
-    position: fixed;
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.7;
+    background: linear-gradient(180deg, #f8fbff 0%, #f4f7fb 48%, #eef5f4 100%);
 }
 
 body.church-theme::before {
-    width: 340px;
-    height: 340px;
-    top: -120px;
-    right: -80px;
-    background: radial-gradient(circle, rgba(15, 110, 207, 0.12), transparent 70%);
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        linear-gradient(135deg, rgba(18, 60, 105, 0.08), transparent 28%),
+        linear-gradient(315deg, rgba(8, 127, 122, 0.08), transparent 26%);
+    opacity: 0.9;
 }
 
-body.church-theme::after {
-    width: 280px;
-    height: 280px;
-    left: -90px;
-    bottom: -80px;
-    background: radial-gradient(circle, rgba(11, 154, 115, 0.1), transparent 72%);
+.church-theme .page,
+.church-theme .container,
+.church-theme .app-shell {
+    position: relative;
 }
 
 .church-theme .page,
 .church-theme .container {
-    position: relative;
-    z-index: 1;
+    width: min(1180px, calc(100% - 28px));
+    padding-top: 22px;
+}
+
+.church-utility-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: grid;
+    gap: 10px;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.94);
+    border-bottom: 1px solid rgba(216, 222, 233, 0.9);
+    box-shadow: 0 8px 22px rgba(23, 32, 51, 0.06);
+    backdrop-filter: blur(14px);
+}
+
+.church-utility-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    color: var(--church-ink);
+}
+
+.church-utility-brand img {
+    width: 38px;
+    height: 38px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+
+.church-utility-brand span {
+    display: grid;
+    min-width: 0;
+}
+
+.church-utility-brand strong,
+.church-utility-brand small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.church-utility-brand strong {
+    font-size: 0.94rem;
+    line-height: 1.1;
+}
+
+.church-utility-brand small {
+    color: var(--muted);
+    font-size: 0.76rem;
+}
+
+.church-utility-nav {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.church-utility-nav a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 8px 8px;
+    border-radius: 8px;
+    background: #f4f7fb;
+    color: #344054;
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-align: center;
+}
+
+.church-utility-nav a:last-child {
+    color: #ffffff;
+    background: var(--church-blue);
 }
 
 .church-theme h1,
@@ -61,34 +125,112 @@ body.church-theme::after {
     text-shadow: none;
 }
 
-.church-theme p,
-.church-theme li,
-.church-theme span,
-.church-theme strong,
-.church-theme label {
-    color: inherit;
-}
-
-.church-theme nav {
+.church-theme nav:not(.sidebar-nav) {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     flex-wrap: wrap;
-    margin-bottom: 24px !important;
-    padding: 16px 20px;
-    background: var(--card);
+    margin-bottom: 22px !important;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.92);
     border: 1px solid var(--border);
-    border-radius: 24px;
+    border-radius: var(--radius-sm);
     box-shadow: var(--shadow-soft);
 }
 
-.church-theme nav span[style*="float:right"] {
+.church-theme nav:not(.sidebar-nav) span[style*="float:right"] {
     margin-left: auto;
     float: none !important;
 }
 
-.church-theme nav a {
+.church-theme nav:not(.sidebar-nav) a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    color: #344054;
+    font-size: 0.9rem;
     font-weight: 700;
+}
+
+.church-theme nav:not(.sidebar-nav) a:hover {
+    background: var(--church-blue-soft);
+    color: var(--church-blue);
+}
+
+.church-theme .page-header,
+.church-theme .topbar,
+.church-theme .header {
+    position: relative;
+    overflow: hidden;
+    align-items: center;
+    padding: clamp(18px, 4vw, 30px);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: var(--radius-sm);
+    color: #ffffff;
+    background:
+        linear-gradient(135deg, rgba(18, 60, 105, 0.98), rgba(8, 127, 122, 0.88)),
+        #123c69;
+    box-shadow: var(--shadow-soft);
+}
+
+.church-theme .page-header::after,
+.church-theme .topbar::after,
+.church-theme .header::after {
+    position: absolute;
+    right: clamp(18px, 5vw, 54px);
+    bottom: -48px;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    content: "";
+}
+
+.church-theme .page-header > *,
+.church-theme .topbar > *,
+.church-theme .header > * {
+    position: relative;
+    z-index: 1;
+}
+
+.church-theme .page-header h1,
+.church-theme .topbar h1,
+.church-theme .header h1,
+.church-theme h1.page-title {
+    color: #ffffff;
+}
+
+.church-theme .page-header .page-intro,
+.church-theme .topbar .page-intro,
+.church-theme .header .page-intro,
+.church-theme .page-header .muted,
+.church-theme .topbar .muted,
+.church-theme .header .muted {
+    color: rgba(255, 255, 255, 0.78) !important;
+}
+
+.church-theme .page-kicker,
+.church-theme .eyebrow,
+.church-theme .badge,
+.church-theme .status-chip,
+.church-theme .album-role-pill,
+.church-theme .songs-role-pill {
+    border-color: rgba(196, 138, 29, 0.34);
+    background: rgba(196, 138, 29, 0.13);
+    color: #8a5b08;
+}
+
+.church-theme .page-header .page-kicker,
+.church-theme .page-header .eyebrow,
+.church-theme .topbar .page-kicker,
+.church-theme .topbar .eyebrow,
+.church-theme .header .page-kicker,
+.church-theme .header .eyebrow {
+    color: #f6d68d;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.18);
 }
 
 .church-theme .card,
@@ -102,9 +244,12 @@ body.church-theme::after {
 .church-theme #normalUserDashboard,
 .church-theme .light-panel,
 .church-theme .report-panel,
-.church-theme .type-card {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 251, 255, 0.96)) !important;
+.church-theme .type-card,
+.church-theme .mini-panel,
+.church-theme .info-card {
+    background: rgba(255, 255, 255, 0.96) !important;
     border: 1px solid var(--border) !important;
+    border-radius: var(--radius-sm) !important;
     box-shadow: var(--shadow-soft) !important;
 }
 
@@ -112,37 +257,50 @@ body.church-theme::after {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    min-height: 46px;
-    padding: 10px 16px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.96);
-    border: 1px solid var(--border);
-    color: var(--text);
-    box-shadow: var(--shadow-soft);
+    min-height: 38px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: #eef4ff;
+    box-shadow: none;
 }
 
 .church-theme .action {
     background: transparent !important;
-    border: none !important;
+    border: 0 !important;
     box-shadow: none !important;
     padding: 0;
 }
 
 .church-theme .action-link {
-    display: block;
-    height: 100%;
-    padding: 22px;
-    border-radius: 24px;
-    background: linear-gradient(180deg, #ffffff, #f7fbff);
+    position: relative;
+    overflow: hidden;
+    background: #ffffff;
     border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
     color: var(--text) !important;
     box-shadow: var(--shadow-soft);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.church-theme .action-link::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    background: linear-gradient(90deg, var(--church-blue), var(--church-green), var(--church-gold));
+    opacity: 0;
+    transition: opacity 0.18s ease;
 }
 
 .church-theme .action-link:hover {
-    transform: translateY(-4px);
+    border-color: #b4c6ee;
+    transform: translateY(-2px);
     box-shadow: var(--shadow);
+}
+
+.church-theme .action-link:hover::before {
+    opacity: 1;
 }
 
 .church-theme .action-title {
@@ -152,29 +310,32 @@ body.church-theme::after {
 .church-theme .action-text,
 .church-theme .muted,
 .church-theme .note,
-.church-theme .field-help {
+.church-theme .field-help,
+.church-theme .field-note {
     color: var(--muted) !important;
 }
 
 .church-theme .action-icon,
 .church-theme .stat-badge {
-    background: linear-gradient(135deg, rgba(15, 110, 207, 0.12), rgba(11, 154, 115, 0.12));
-    color: var(--church-blue-dark);
+    background: var(--church-blue-soft);
+    color: var(--church-blue);
 }
 
 .church-theme .panel-chip {
     background: var(--church-green-soft);
+    border-color: #99f6e4;
     color: var(--church-green);
 }
 
 .church-theme .context-badge {
     background: var(--church-blue-soft);
+    border-color: #c8d9ec;
     color: var(--church-blue-dark);
 }
 
 .church-theme .admin-section {
-    background: linear-gradient(180deg, #fff9ea, #fffef8) !important;
-    border-color: #f2d48a !important;
+    background: #fffbeb !important;
+    border-color: #fde68a !important;
 }
 
 .church-theme .suggestion-item {
@@ -182,15 +343,7 @@ body.church-theme::after {
 }
 
 .church-theme .suggestion-item:hover {
-    background: var(--primary-soft);
-}
-
-.church-theme .clickable-cell {
-    cursor: pointer;
-}
-
-.church-theme .clickable-cell.pending-cell {
-    cursor: progress;
+    background: #f8fafc;
 }
 
 .church-theme .summary-table td,
@@ -204,9 +357,197 @@ body.church-theme::after {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 14px;
-    border-radius: 16px;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
     background: var(--primary-soft);
     color: var(--primary-dark);
     font-weight: 700;
+}
+
+.church-theme .dashboard-topbar {
+    background: rgba(10, 42, 74, 0.96) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #f9fafb !important;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.14);
+}
+
+.church-theme nav.dashboard-visitor-links {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 !important;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.church-theme nav.dashboard-visitor-links a {
+    min-height: 36px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    color: rgba(255, 255, 255, 0.82);
+    background: rgba(255, 255, 255, 0.08);
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.church-theme nav.dashboard-visitor-links a:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.16);
+}
+
+.church-theme .dashboard-topbar .page-title,
+.church-theme .dashboard-topbar h1 {
+    color: #ffffff !important;
+}
+
+.church-theme .topbar-kicker {
+    color: #f6d68d !important;
+}
+
+.church-theme .hero-shell {
+    background: #0a2a4a !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff;
+}
+
+.church-theme .hero-shell h1,
+.church-theme .hero-shell h2,
+.church-theme .hero-shell h3,
+.church-theme .hero-shell p,
+.church-theme .hero-shell span {
+    color: inherit;
+}
+
+.church-theme .hero-shell .hero-text,
+.church-theme .slide-description,
+.church-theme .slide-kicker {
+    color: #cbd5e1 !important;
+}
+
+.church-theme .slide-card,
+.church-theme .metric-tile {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    box-shadow: none !important;
+}
+
+.church-theme .metric-tile strong {
+    color: #ffffff;
+}
+
+.church-theme .slide-control,
+.church-theme .menu-toggle {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.14) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+}
+
+.church-theme .workspace-frame {
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+.church-theme button,
+.church-theme .btn,
+.church-theme .action-btn,
+.church-theme .download-link,
+.church-theme .album-action-link {
+    border-radius: var(--radius-sm) !important;
+}
+
+.church-theme .btn-primary,
+.church-theme button:not(.btn-outline):not(.btn-danger):not(.slide-control):not(.menu-toggle) {
+    background: var(--church-blue);
+}
+
+.church-theme .btn-primary:hover,
+.church-theme button:not(.btn-outline):not(.btn-danger):not(.slide-control):not(.menu-toggle):hover {
+    background: var(--church-blue-dark);
+}
+
+.church-theme .btn-secondary {
+    background: var(--church-green);
+}
+
+.church-theme table {
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+}
+
+.church-theme th {
+    background: var(--church-blue) !important;
+}
+
+.church-theme .payment-option {
+    background: #ffffff !important;
+    border-radius: var(--radius-sm) !important;
+}
+
+@media (min-width: 760px) {
+    .church-utility-bar {
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        padding-inline: 22px;
+    }
+
+    .church-utility-nav {
+        display: flex;
+        align-items: center;
+    }
+
+    .church-utility-nav a {
+        padding-inline: 12px;
+        font-size: 0.84rem;
+    }
+}
+
+@media (max-width: 720px) {
+    .church-theme .page,
+    .church-theme .container {
+        width: min(100% - 20px, 1180px);
+        padding-top: 14px;
+    }
+
+    .church-theme .page-header,
+    .church-theme .topbar,
+    .church-theme .header {
+        display: grid;
+        gap: 16px;
+        align-items: start;
+    }
+
+    .church-theme .header-actions,
+    .church-theme .topbar-actions,
+    .church-theme .nav-actions,
+    .church-theme .btn-row,
+    .church-theme .actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .church-theme nav.dashboard-visitor-links {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .church-theme .header-actions > *,
+    .church-theme .topbar-actions > *,
+    .church-theme .actions > * {
+        width: 100%;
+    }
+
+    .church-theme .card,
+    .church-theme .section,
+    .church-theme .type-card,
+    .church-theme .light-panel,
+    .church-theme .report-panel,
+    .church-theme .info-card {
+        padding: 18px !important;
+    }
 }

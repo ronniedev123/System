@@ -31,9 +31,10 @@ router.get('/stats', authMiddleware, async (req, res) => {
         const totalMembers = membersCountRows[0].total || 0;
 
         // Upcoming events (next 30 days)
-        const [eventsRows] = await db.execute(
-            "SELECT COUNT(*) as upcoming FROM events WHERE event_date >= CURDATE() AND event_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY)"
-        );
+        const upcomingEventsSql = db.dialect === "sqlite"
+            ? "SELECT COUNT(*) as upcoming FROM events WHERE date(event_date) >= date('now') AND date(event_date) <= date('now', '+30 day')"
+            : "SELECT COUNT(*) as upcoming FROM events WHERE event_date >= CURDATE() AND event_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY)";
+        const [eventsRows] = await db.execute(upcomingEventsSql);
         const upcomingEvents = eventsRows[0].upcoming || 0;
 
         // Total donations amount
@@ -43,9 +44,10 @@ router.get('/stats', authMiddleware, async (req, res) => {
         const totalDonations = donationRows[0].totalDonations || 0;
 
         // Today's attendance count
-        const [attendanceRows] = await db.execute(
-            "SELECT COUNT(*) as todayAttendance FROM attendance WHERE DATE(check_in) = CURDATE()"
-        );
+        const todayAttendanceSql = db.dialect === "sqlite"
+            ? "SELECT COUNT(*) as todayAttendance FROM attendance WHERE DATE(check_in) = DATE('now')"
+            : "SELECT COUNT(*) as todayAttendance FROM attendance WHERE DATE(check_in) = CURDATE()";
+        const [attendanceRows] = await db.execute(todayAttendanceSql);
         const todayAttendance = attendanceRows[0].todayAttendance || 0;
 
         res.json({ totalMembers, upcomingEvents, totalDonations, todayAttendance });

@@ -69,8 +69,13 @@ function buildMemberFilters({ search, address, department, hasPhone } = {}) {
         if (normalizedDepartment === UNASSIGNED_LABEL) {
             conditions.push("(department IS NULL OR TRIM(department) = '')");
         } else {
-            conditions.push("FIND_IN_SET(?, REPLACE(IFNULL(department, ''), ', ', ',')) > 0");
-            params.push(normalizedDepartment);
+            if (db.dialect === "sqlite") {
+                conditions.push("(',' || REPLACE(IFNULL(department, ''), ', ', ',') || ',') LIKE ?");
+                params.push(`%,${normalizedDepartment},%`);
+            } else {
+                conditions.push("FIND_IN_SET(?, REPLACE(IFNULL(department, ''), ', ', ',')) > 0");
+                params.push(normalizedDepartment);
+            }
         }
     }
 

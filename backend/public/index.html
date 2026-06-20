@@ -4,45 +4,196 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ministry of Repentance and Holiness - Umoja Main Altar</title>
-    <link rel="stylesheet" href="css/auth.css">
-<link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#0f6ecf">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Church App">
-<link rel="apple-touch-icon" href="assets/icon-192.png"></head>
-<body class="auth-page">
-    <main class="auth-shell auth-shell-single">
-        <section class="auth-panel welcome-panel">
-            <div class="top">
-                <div class="cross">✝</div>
-                <h1>Ministry of Repentance and Holiness</h1>
-                <p class="auth-subtitle">
-                    We are a ministry committed to calling the nations to repentance, righteousness, and holiness, preparing the Church for the glorious coming of the Messiah.
-                </p>
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#123c69">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Church App">
+    <link rel="apple-touch-icon" href="assets/icon-192.png">
+</head>
+<body>
+    <header class="site-header">
+        <a class="brand" href="#top" aria-label="Umoja Main Altar home">
+            <img src="assets/logo.jpeg" alt="Umoja Main Altar logo">
+            <span>
+                <strong>Umoja Main Altar</strong>
+                <small>Repentance and Holiness</small>
+            </span>
+        </a>
+
+        <input class="nav-check" type="checkbox" id="navToggle" aria-label="Toggle navigation">
+        <label class="nav-toggle" for="navToggle"><span></span></label>
+
+        <nav class="site-nav" aria-label="Main navigation">
+            <a href="#visit">Visit</a>
+            <a href="#messages">Messages</a>
+            <a href="#testimonies">Testimonies</a>
+            <a href="#contact">Contact</a>
+            <a class="nav-login" href="login.html">Login</a>
+        </nav>
+    </header>
+
+    <main id="top">
+        <section class="hero-section" aria-labelledby="heroTitle">
+            <div class="hero-media" aria-hidden="true">
+                <video autoplay muted loop playsinline poster="assets/ssstik.io_@brian_kiverenge_1777289787251.mp4">
+                    <source src="assets/ssstik.io_@brian_kiverenge_1777289787251.mp4" type="video/mp4">
+                </video>
             </div>
 
-            <ul class="auth-list">
-                <li>
-                    <strong>Admins</strong>
-                    Track attendance, members, and contributions with clearer structure.
-                </li>
-                <li>
-                    <strong>Users</strong>
-                    Stay aligned on programs, announcements, and events.
-                </li>
-                <li>
-                    <strong>For Members</strong>
-                    Access giving, weekly programs, and personal attendance reports more easily.
-                </li>
-            </ul>
+            <div class="hero-content">
+                <p class="eyebrow">First time at Umoja Main Altar?</p>
+                <h1 id="heroTitle">Welcome to Umoja Main Altar.</h1>
+                <p>
+                    We are under the Ministry of Repentance and Holliness, a ministry preparing the way for the Glorious coming of the Messiah.
+                </p>
+                <div class="hero-actions">
+                    <a class="button primary" href="#visit">Plan My Visit</a>
+                    <a class="button ghost" href="#contact">Contact Us</a>
+                </div>
+            </div>
+        </section>
 
-            <div class="auth-actions">
-                <a class="auth-button" href="login.html">Login</a>
-                <a class="auth-button secondary" href="register.html">Register</a>
+        <section class="quick-contact" aria-label="Quick contact">
+            <a href="#contact">
+                <span>Location</span>
+                <strong>Umoja Main Altar</strong>
+            </a>
+            <a href="#contact">
+                <span>Need help?</span>
+                <strong>Contact the church</strong>
+            </a>
+            <a href="login.html">
+                <span>Members</span>
+                <strong>Proceed to login</strong>
+            </a>
+        </section>
+
+        <section class="section visit-hub" id="visit" aria-labelledby="visitTitle">
+            <div class="section-heading">
+                <p class="eyebrow">Visitor Hub</p>
+                <h2 id="visitTitle">What awaits you...</h2>
+            </div>
+
+            <div class="hub-grid">
+                <article class="hub-card feature-card">
+                    <span class="card-icon">01</span>
+                    <h3>Beautiful Worship Experience</h3>
+                    <p>Expect worship, teaching, repentance, prayer, and a church family ready to welcome you.</p>
+                </article>
+                <article class="hub-card">
+                    <span class="card-icon">02</span>
+                    <h3>Teachings</h3>
+                    <p>Have access you nice teachings that are beneficial to your Spiritual growth.</p>
+                </article>
+                <article class="hub-card">
+                    <span class="card-icon">03</span>
+                    <h3>Prayers and Counselling</h3>
+                    <p>Meet with pastors who are committed to the Lord's Service and who will guide you on issues affecting you through prayers and counselling.</p>
+                </article>
+                <article class="hub-card">
+                    <span class="card-icon">04</span>
+                    <h3>Loving And Caring Family</h3>
+                    <p>Meet up with lots of good people who are ready to welcome you and guide you on the walk of Holliness and Righteousness.s</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="section media-section" id="messages" aria-labelledby="messagesTitle">
+            <div class="section-heading">
+                <p class="eyebrow">Actual Church Media</p>
+                <h2 id="messagesTitle">Let visitors see your real worship environment.</h2>
+            </div>
+            <div class="media-grid">
+                <article class="video-card large-video">
+                    <video controls playsinline poster="assets/baby jayden.mp4">
+                        <source src="assets/baby jayden.mp4" type="video/mp4">
+                    </video>
+                    <div>
+                        <p class="eyebrow">Welcome Clip</p>
+                        <h3>Sunday at Umoja Main Altar</h3>
+                    </div>
+                </article>
+                <article class="video-card">
+                    <video controls playsinline poster="assets/WhatsApp Video 2026-06-07 at 11.36.25.mp4">
+                        <source src="assets/WhatsApp Video 2026-06-07 at 11.36.25.mp4" type="video/mp4">
+                    </video>
+                    <div>
+                        <p class="eyebrow">Testimony</p>
+                        <h3>Member story</h3>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <section class="section testimonies" id="testimonies" aria-labelledby="testimoniesTitle">
+            <div class="section-heading">
+                <p class="eyebrow">Testimonial Clips</p>
+                <h2 id="testimoniesTitle">Real voices from the church family.</h2>
+            </div>
+            <div class="testimony-strip">
+                <article>
+                    <video controls playsinline poster="assets/WhatsApp Video 2026-06-07 at 12.51.55.mp4">
+                        <source src="assets/WhatsApp Video 2026-06-07 at 12.51.55.mp4" type="video/mp4">
+                    </video>
+                    <h3>Salvation</h3>
+                </article>
+                <article>
+                    <video controls playsinline poster="assets/logo.jpeg">
+                        <source src="assets/testimony-3.mp4" type="video/mp4">
+                    </video>
+                    <h3>Healing</h3>
+                </article>
+                <article>
+                    <video controls playsinline poster="assets/logo.jpeg">
+                        <source src="assets/testimony-4.mp4" type="video/mp4">
+                    </video>
+                    <h3>Restoration</h3>
+                </article>
+            </div>
+        </section>
+
+        <section class="section contact-section" id="contact" aria-labelledby="contactTitle">
+            <div class="contact-panel">
+                <div>
+                    <p class="eyebrow">Contact</p>
+                    <h2 id="contactTitle">Find Umoja Main Altar.</h2>
+                    <p class="contact-copy">
+                        We are located at Umoja 1 Peacock at Chanus Court inside Chanus Hardware. Welcome all...
+                    </p>
+                </div>
+                <div class="contact-list">
+                    <a href="tel:+254721662010" target="_blank" rel="noreferrer">
+                        <span>Phone</span>
+                        <strong>DEPUTY ARCH BISHOP JAYNE GATHAARA:</strong>
+                        <strong>+254721662010</strong>
+                    </a>
+                    <a href="https://www.jesusislordradio.info" target="_blank" rel="noreferrer">
+                        <span>Visit</span>
+                        <strong>jesusislordradio</strong>
+                    </a>
+                    <a href="https://www.youtube.com/@repentpreparetheway" target="_blank" rel="noreferrer">
+                        <span>Watch</span>
+                        <strong>Repentance YouTube Channel</strong>
+                    </a>
+                    <a href="https://www.google.com/maps/place/Chanus+Hardware/@-1.2806138,36.8896339,978m/data=!3m1!1e3!4m14!1m7!3m6!1s0x182f136ca907f9f3:0xd693ca510ad16bf5!2sChanus+Hardware!8m2!3d-1.2806138!4d36.8922142!16s%2Fg%2F11l4k5cz38!3m5!1s0x182f136ca907f9f3:0xd693ca510ad16bf5!8m2!3d-1.2806138!4d36.8922142!16s%2Fg%2F11l4k5cz38?entry=ttu&g_ep=EgoyMDI2MDYxMC4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noreferrer">
+                        <span>Directions</span>
+                        <strong>Open map</strong>
+                    </a>
+                </div>
             </div>
         </section>
     </main>
-<script src="js/pwa.js"></script>
+
+    <footer class="site-footer">
+        <p>Ministry of Repentance and Holiness - Umoja Main Altar</p>
+        <div>
+            <a href="login.html">Login</a>
+            <a href="register.html">Register</a>
+        </div>
+    </footer>
+
+    <script src="js/pwa.js"></script>
 </body>
 </html>

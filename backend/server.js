@@ -10,6 +10,26 @@ const app = express();
 // determine port, try environment then default. we'll attempt to find a free one if default is busy
 let PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
+let initPromise;
+
+function initializeApp() {
+    if (!initPromise) {
+        initPromise = (async () => {
+            try {
+                await require("./migrations/run_migrations");
+            } catch (e) {
+                console.error("Migrations failed.", e.message);
+                throw e;
+            }
+
+            const { createAdminIfNotExists } = require("./models/userModel");
+            await createAdminIfNotExists().catch(err => console.error(err));
+        })();
+    }
+
+    return initPromise;
+}
+
 // helper to find a free port starting from a given port
 const net = require('net');
 async function findFreePort(start) {
@@ -81,6 +101,15 @@ app.use((req, res, next) => {
 // Serve static frontend files
 app.use(express.static(path.join(__dirname, "public")));
 
+app.use(async (req, res, next) => {
+    try {
+        await initializeApp();
+        next();
+    } catch (e) {
+        res.status(500).json({ message: "Server initialization failed" });
+    }
+});
+
 // =====================
 // ROUTES
 // =====================
@@ -129,19 +158,11 @@ app.use((req, res) => {
 });
 
 // =====================
-// START SERVER
+// START SERVER / SERVERLESS EXPORT
 // =====================
 
-(async () => {
-    try {
-        await require("./migrations/run_migrations");
-    } catch (e) {
-        console.error("Migrations failed, exiting.", e.message);
-        process.exit(1);
-    }
-
-    const { createAdminIfNotExists } = require("./models/userModel");
-    await createAdminIfNotExists().catch(err => console.error(err));
+async function startServer() {
+    await initializeApp();
 
     // if port is specified but in use, find another
     try {
@@ -163,4 +184,10 @@ app.use((req, res) => {
         }
         process.exit(1);
     });
-})();
+}
+
+if (!process.env.VERCEL && (require.main === module || require.main?.filename === path.join(__dirname, "..", "server.js"))) {
+    startServer();
+}
+
+module.exports = app;

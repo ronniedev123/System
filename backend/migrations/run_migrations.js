@@ -1,8 +1,211 @@
 const isMain = require.main === module;
 
+async function runSqliteMigrations(db) {
+  await db.execute("PRAGMA foreign_keys = ON");
+
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      phone TEXT UNIQUE NOT NULL,
+      email TEXT,
+      password TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'user',
+      is_approved INTEGER NOT NULL DEFAULT 1,
+      is_blocked INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS members (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      gender TEXT,
+      department TEXT,
+      phone TEXT,
+      attendance_code TEXT UNIQUE,
+      photo_url TEXT,
+      address TEXT,
+      created_by INTEGER,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+    )
+  `);
+
+  await db.execute(`CREATE INDEX IF NOT EXISTS idx_members_name ON members (name)`);
+
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      description TEXT,
+      event_date TEXT,
+      created_by INTEGER,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+    )
+  `);
+
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS donations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      donor_name TEXT NOT NULL,
+      amount REAL NOT NULL,
+      donation_date TEXT,
+      contribution_type TEXT DEFAULT 'general',
+      payment_method TEXT DEFAULT 'manual',
+      payment_reference TEXT,
+      created_by INTEGER,
+      description TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+    )
+  `);
+
+  await db.execute(`CREATE INDEX IF NOT EXISTS idx_donations_donation_date ON donations (donation_date)`);
+
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS attendance (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      member_id INTEGER NOT NULL,
+      check_in TEXT,
+      check_out TEXT,
+      attendance_source TEXT NOT NULL DEFAULT 'manual',
+      created_by INTEGER,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE,
+      FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+    )
+  `);
+
+  await db.execute(`CREATE INDEX IF NOT EXISTS idx_attendance_member_checkin ON attendance (member_id, check_in)`);
+  await db.execute(`CREATE INDEX IF NOT EXISTS idx_attendance_checkin ON attendance (check_in)`);
+
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS announcements (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      message TEXT NOT NULL,
+      created_by INTEGER,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+    )
+  `);
+
+  await db.execute(`CREATE INDEX IF NOT EXISTS idx_announcements_created_at ON announcements (created_at)`);
+
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS weekly_programs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      day_of_week TEXT NOT NULL,
+      program_name TEXT NOT NULL,
+      time_slot TEXT NOT NULL,
+      venue TEXT NOT NULL,
+      sort_order INTEGER DEFAULT 99,
+      created_by INTEGER,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+    )
+  `);
+
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS worship_song_folders (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      folder_name TEXT NOT NULL,
+      service_date TEXT NOT NULL UNIQUE,
+      created_by INTEGER,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+    )
+  `);
+
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS worship_songs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      artist TEXT,
+      description TEXT,
+      folder_id INTEGER,
+      file_name TEXT NOT NULL,
+      file_data TEXT NOT NULL,
+      mime_type TEXT NOT NULL,
+      created_by INTEGER,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (folder_id) REFERENCES worship_song_folders(id) ON DELETE SET NULL,
+      FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+    )
+  `);
+
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS church_album (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      description TEXT,
+      image_name TEXT NOT NULL,
+      image_data TEXT NOT NULL,
+      mime_type TEXT NOT NULL,
+      created_by INTEGER,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+    )
+  `);
+
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS payment_transactions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      member_id INTEGER NOT NULL,
+      donation_id INTEGER,
+      donor_name TEXT NOT NULL,
+      phone_number TEXT,
+      amount REAL NOT NULL,
+      contribution_type TEXT NOT NULL DEFAULT 'general',
+      description TEXT,
+      payment_method TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'pending',
+      provider_request_id TEXT,
+      provider_checkout_id TEXT,
+      provider_reference TEXT,
+      redirect_url TEXT,
+      external_reference TEXT,
+      provider_payload TEXT,
+      response_message TEXT,
+      paid_at TEXT,
+      created_by INTEGER,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE,
+      FOREIGN KEY (donation_id) REFERENCES donations(id) ON DELETE SET NULL,
+      FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+    )
+  `);
+
+  const [weeklyRows] = await db.execute(`SELECT COUNT(*) as count FROM weekly_programs`);
+  if (!weeklyRows[0].count) {
+    await db.execute(`
+      INSERT INTO weekly_programs (day_of_week, program_name, time_slot, venue, sort_order)
+      VALUES
+        ('Monday', 'Prayer Service', '6:00 PM - 7:30 PM', 'Main Sanctuary', 1),
+        ('Tuesday', 'Bible Study', '6:00 PM - 7:30 PM', 'Fellowship Hall', 2),
+        ('Wednesday', 'Youth Fellowship', '5:30 PM - 7:30 PM', 'Youth Chapel', 3),
+        ('Thursday', 'Intercessory Prayers', '6:00 PM - 7:30 PM', 'Main Sanctuary', 4),
+        ('Friday', 'Kesha / Night Vigil', '9:00 PM - 12:30 AM', 'Main Sanctuary', 5),
+        ('Saturday', 'Choir Practice', '2:00 PM - 4:00 PM', 'Music Room', 6),
+        ('Sunday', 'Main Service', '8:00 AM - 12:30 PM', 'Main Altar', 7)
+    `);
+  }
+
+  console.log("SQLite migrations executed (tables ensured)");
+}
+
 module.exports = (async () => {
   const db = require("../utils/db");
   try {
+    if (db.dialect === "sqlite") {
+      await runSqliteMigrations(db);
+      return;
+    }
+
     // users
     await db.execute(`
       CREATE TABLE IF NOT EXISTS users (

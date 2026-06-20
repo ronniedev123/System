@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Ministry of Repentance and Holiness</title>
+    <link rel="stylesheet" href="css/auth.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f6ecf">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Church App">
+<link rel="apple-touch-icon" href="assets/icon-192.png"></head>
+<body class="auth-page">
+    <main class="auth-shell">
+        <section class="auth-hero">
+            <!-- Church Image Slideshow -->
+            <div class="slideshow-container">
+                <div class="slide fade">
+                    <img src="https://images.unsplash.com/photo-1519904981063-b0cf448d479e?w=800&q=80" alt="Church Interior">
+                    <div class="slide-overlay"></div>
+                </div>
+                <div class="slide fade">
+                    <img src="https://images.unsplash.com/photo-1464207687429-7505649dae38?w=800&q=80" alt="Church Cross">
+                    <div class="slide-overlay"></div>
+                </div>
+                <div class="slide fade">
+                    <img src="https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=800&q=80" alt="Worship">
+                    <div class="slide-overlay"></div>
+                </div>
+                <div class="slide fade">
+                    <img src="https://images.unsplash.com/photo-1516841573519-c21855e4798d?w=800&q=80" alt="Community">
+                    <div class="slide-overlay"></div>
+                </div>
+            </div>
+
+            <div class="hero-content">
+                <span class="auth-badge">Umoja Main Altar</span>
+                <div class="cross">✝</div>
+                <h2 class="hero-title">Welcome to Our Ministry</h2>
+                <p class="auth-subtitle">
+                    Sign in to continue to your dashboard, review ministry records, and work inside our vibrant church management system.
+                </p>
+                <ul class="auth-list">
+                    <li>
+                        <strong>✨ Members and Departments</strong>
+                        Manage and organize all church members and departmental structures efficiently.
+                    </li>
+                    <li>
+                        <strong>📊 Attendance and Reports</strong>
+                        Track attendance reports and get summaries monthly and annually on attendance trends.
+                    </li>
+                    <li>
+                        <strong>🙏 Church Programs and Contributions</strong>
+                        Stay updated with church events and programs and support our ministries.
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="auth-panel">
+            <div class="top">
+                <span class="auth-badge">Login</span>
+                <div class="cross">✝</div>
+                <h1>Welcome back</h1>
+            </div>
+
+            <form id="loginForm">
+                <input type="tel" id="phone" placeholder="Phone Number" required>
+                <input type="password" id="password" placeholder="Password" required>
+                <button type="submit">Login</button>
+                <p id="error"></p>
+            </form>
+
+            <div class="links">
+                <a href="index.html">Back to Welcome</a>
+                <a href="register.html">Create Account</a>
+            </div>
+        </section>
+    </main>
+
+    <script src="js/main.js"></script>
+    <script src="js/pwa.js"></script>
+    <script>
+        // Slideshow functionality
+        let slideIndex = 1;
+        
+        function showSlides() {
+            const slides = document.querySelectorAll(".slide");
+            slides.forEach((slide, index) => {
+                slide.classList.remove("fade");
+                if (index === (slideIndex - 1) % slides.length) {
+                    slide.classList.add("fade");
+                }
+            });
+            slideIndex = (slideIndex % slides.length) + 1;
+        }
+
+        // Initialize slideshow
+        function initSlideshow() {
+            showSlides();
+            setInterval(showSlides, 8000); // Change slide every 8 seconds
+        }
+
+        // Start slideshow when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initSlideshow);
+        } else {
+            initSlideshow();
+        }
+    </script>

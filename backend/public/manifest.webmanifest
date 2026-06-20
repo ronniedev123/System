@@ -1,4 +1,7 @@
-{
+# Export your local database
+"C:\Program Files\MySQL\MySQL Server 8.0\bin\mysqldump" -u root -p your_local_database > C:\Users\user\Desktop\backup.sql
+
+# When prompted, enter your local MySQL password{
   "name": "Church Management System",
   "short_name": "Church App",
   "description": "Manage church members, attendance, events, announcements, contributions, worship songs, church album images, and reports.",
