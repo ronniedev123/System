@@ -1,4 +1,4 @@
-# Church Management System
+
 
 Minimal README to run the project locally and DB / env expectations.
 
@@ -95,5 +95,3 @@ Deploying From GitHub
 Known behavior
 - JWT tokens default to `JWT_SECRET` or `secretkey` if not set.
 - Email sending requires valid `EMAIL_USER`/`EMAIL_PASS`.
-
-If you want, I can add SQL migration files to create all tables automatically.
